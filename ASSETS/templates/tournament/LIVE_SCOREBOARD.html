@@ -28,25 +28,24 @@
       pointer-events: none;
     }
 
-    /* Locked aspect ratio container matching 1024x682 (ratio 1.5) */
+    /* Fixed scoreboard container at exactly 480px x 1080px */
     #boardContainer {
       position: absolute;
-      right: 0vw;         /* Align to right-most edge */
-      top: 50%;
-      transform: translateY(-50%);
-      width: 30vw;        /* Max 30% of screen width */
-      height: 20vw;       /* Aspect ratio lock (30vw / 1.5 = 20vw) */
+      right: 0;           /* Align to right-most edge */
+      top: 0;
+      width: 480px;       /* Exact 480px width */
+      height: 1080px;     /* Exact 1080px height */
       background: url('/media/scoreboard_bg.png') no-repeat center center;
-      background-size: contain;
+      background-size: cover;
     }
 
     /* ── Team Rows Container ───────── */
     #teamList {
       position: absolute;
-      top: 18.03%;       /* Aligns with top row of the pre-rendered grid (123px / 682px) */
-      right: 34.375%;    /* Aligns with column boundaries (352px / 1024px) */
-      width: 31.25%;     /* Grid width (320px / 1024px) */
-      height: 68.47%;    /* Height covering all 16 rows (467px / 682px) */
+      top: 195px;         /* Aligns with top row of the pre-rendered grid (18.03% of 1080px) */
+      right: 10px;        /* Padding from right border */
+      width: 460px;       /* Width centered inside the 480px board */
+      height: 740px;      /* Height covering all 16 rows (68.47% of 1080px) */
       display: flex;
       flex-direction: column;
       overflow: hidden;
@@ -54,7 +53,7 @@
 
     .team-row {
       display: grid;
-      grid-template-columns: 1fr 18% 25%;
+      grid-template-columns: 1fr 65px 85px; /* Column widths optimized for 460px container */
       height: 6.25%;     /* 100% / 16 rows = 6.25% height per row */
       align-items: center;
       border-bottom: none;
@@ -63,14 +62,14 @@
     }
 
     .team-name-cell {
-      font-size: 0.8vw;
+      font-size: 15px;
       font-weight: 700;
       color: #ffffff;
       letter-spacing: 0.5px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      padding-left: 6px;
+      padding-left: 10px;
     }
 
     .team-row.eliminated .team-name-cell {
@@ -80,7 +79,7 @@
     }
 
     .kills-cell, .alive-cell {
-      font-size: 0.9vw;
+      font-size: 16px;
       font-weight: 700;
       text-align: center;
       font-family: 'Orbitron', sans-serif;
@@ -94,14 +93,14 @@
     .alive-cell {
       color: #ffffff;
       text-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
-      letter-spacing: 0.1vw;
-      font-size: 0.8vw;
+      letter-spacing: 2px;
+      font-size: 14px;
     }
 
     .alive-cell.zero {
       color: #ff1744;
-      font-size: 0.7vw;
-      letter-spacing: 0.05vw;
+      font-size: 12px;
+      letter-spacing: 1px;
       text-shadow: 0 0 8px rgba(255, 23, 68, 0.6);
     }
 
