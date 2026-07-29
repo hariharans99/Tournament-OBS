@@ -80,10 +80,10 @@
       50%       { opacity: 0.4; transform: scale(0.8); }
     }
 
-    /* ── Column Headers (Team Name | Kills | Points | Alive) ────────── */
+    /* ── Column Headers (Team Name | Kills | Alive) ────────────────── */
     #colHeaders {
       display: grid;
-      grid-template-columns: 1fr 50px 55px 70px;
+      grid-template-columns: 1fr 65px 75px;
       padding: 8px 14px;
       border-bottom: 1px solid rgba(0, 212, 255, 0.2);
       background: rgba(0, 212, 255, 0.08);
@@ -116,7 +116,7 @@
 
     .team-row {
       display: grid;
-      grid-template-columns: 1fr 50px 55px 70px;
+      grid-template-columns: 1fr 65px 75px;
       padding: 7px 14px;
       align-items: center;
       border-bottom: 1px solid rgba(255, 255, 255, 0.05);
@@ -149,7 +149,7 @@
       text-decoration-color: #ff1744;
     }
 
-    .kills-cell, .points-cell, .alive-cell {
+    .kills-cell, .alive-cell {
       font-size: 15px;
       font-weight: 700;
       text-align: center;
@@ -159,11 +159,6 @@
     .kills-cell {
       color: #ffcc00;
       text-shadow: 0 0 8px rgba(255, 204, 0, 0.4);
-    }
-
-    .points-cell {
-      color: #00d4ff;
-      text-shadow: 0 0 8px rgba(0, 212, 255, 0.4);
     }
 
     .alive-cell {
@@ -285,7 +280,7 @@
     const REFRESH_MS      = 2000; // Poll Google Sheet every 2 seconds
 
     let rawCsvUrl    = '';
-    let prevData     = {};    // Map of teamName -> { kills, alive, points }
+    let prevData     = {};    // Map of teamName -> { kills, alive }
     let refreshTimer = null;
     let popupQueue   = [];
     let popupBusy    = false;
@@ -298,7 +293,6 @@
       return match ? match[1] : '';
     }
 
-    // Extract sheet GID
     function extractGid(url) {
       if (!url) return '0';
       let match = url.match(/gid=([0-9]+)/);
@@ -470,18 +464,10 @@
             if (isNaN(killsVal)) killsVal = 0;
           }
 
-          // Points value (Column E = index 4)
-          let pointsVal = 0;
-          if (r[4] !== undefined && r[4] !== '') {
-            pointsVal = parseInt(r[4].trim(), 10);
-            if (isNaN(pointsVal)) pointsVal = 0;
-          }
-
           teams.push({
-            name:   nameCandidate,
-            alive:  aliveVal,
-            kills:  killsVal,
-            points: pointsVal
+            name:  nameCandidate,
+            alive: aliveVal,
+            kills: killsVal
           });
         }
 
@@ -496,7 +482,7 @@
         updateFooter(teams);
 
         teams.forEach(t => {
-          prevData[t.name] = { kills: t.kills, alive: t.alive, points: t.points };
+          prevData[t.name] = { kills: t.kills, alive: t.alive };
         });
 
       } catch (err) {
@@ -511,10 +497,7 @@
         if (aAlive !== bAlive) {
           return bAlive - aAlive; // Alive teams first
         }
-        if (b.points !== a.points) {
-          return b.points - a.points; // Sort by Points descending
-        }
-        return b.kills - a.kills; // Tiebreaker: kills descending
+        return b.kills - a.kills; // Sort by kills descending
       });
     }
 
@@ -536,7 +519,6 @@
         row.innerHTML = `
           <div class="team-name-cell" title="${t.name}">${t.name}</div>
           <div class="kills-cell" id="kills_${safeid(t.name)}">${t.kills}</div>
-          <div class="points-cell" id="points_${safeid(t.name)}">${t.points}</div>
           <div class="alive-cell ${isOut ? 'zero' : ''}" id="alive_${safeid(t.name)}">${aliveSymbols}</div>
         `;
         list.appendChild(row);
@@ -561,16 +543,11 @@
         const row  = e('row_' + id);
         if (!row) return;
 
-        const prev = prevData[t.name] || { kills: t.kills, alive: t.alive, points: t.points };
+        const prev = prevData[t.name] || { kills: t.kills, alive: t.alive };
 
         if (t.kills !== prev.kills) {
           animateNumber('kills_' + id, prev.kills, t.kills, '#ffcc00');
           flashRow(row, 'rgba(255, 204, 0, 0.2)');
-        }
-
-        if (t.points !== prev.points) {
-          animateNumber('points_' + id, prev.points, t.points, '#00d4ff');
-          flashRow(row, 'rgba(0, 212, 255, 0.2)');
         }
 
         if (t.alive !== prev.alive) {
@@ -706,6 +683,7 @@
         });
     }
 
+    // Update footer totals
     function updateFooter(teams) {
       const alive = teams.filter(t => t.alive > 0).length;
       const elim  = teams.filter(t => t.alive === 0).length;
@@ -784,11 +762,10 @@
       </div>
     </div>
 
-    <!-- 4 Columns: TEAM | KILLS | PTS | ALIVE -->
+    <!-- 3 Columns: TEAM | KILLS | ALIVE -->
     <div id="colHeaders">
       <div class="col-hdr name">TEAM</div>
       <div class="col-hdr">KILLS</div>
-      <div class="col-hdr">PTS</div>
       <div class="col-hdr">ALIVE</div>
     </div>
 
