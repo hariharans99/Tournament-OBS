@@ -17,19 +17,6 @@
       font-family: 'Rajdhani', sans-serif;
     }
 
-    /* ── Character topper ─────────────────────────────────────────── */
-    #charTopper {
-      position: absolute;
-      top: -68px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 100%;
-      height: 90px;
-      background: url('/media/scoreboard_chars.png') center bottom / contain no-repeat;
-      z-index: 10;
-      pointer-events: none;
-    }
-
     /* ── Main Scoreboard Panel (Right Side) ────────────────────────── */
     #scorePanel {
       position: absolute;
@@ -213,10 +200,12 @@
     }
 
     .kills-cell, .points-cell, .alive-cell {
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 700;
       text-align: center;
       font-family: 'Orbitron', sans-serif;
+      border-left: 1px solid rgba(200, 90, 0, 0.35);
+      padding: 0 2px;
     }
 
     .kills-cell {
@@ -232,7 +221,7 @@
     .alive-cell {
       color: #ffffff;
       letter-spacing: 1px;
-      font-size: 11px;
+      font-size: 10px;
     }
 
     .alive-cell.zero {
@@ -845,9 +834,6 @@
 
   <!-- RIGHT SIDE SCOREBOARD PANEL -->
   <div id="scorePanel">
-    <!-- Character topper (peeking above the panel) -->
-    <div id="charTopper"></div>
-
     <div id="panelHeader">
       <div id="panelTitle">🟠 LIVE SCOREBOARD</div>
       <div id="liveIndicator">
