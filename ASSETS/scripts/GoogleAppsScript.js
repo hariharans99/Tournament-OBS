@@ -2,7 +2,7 @@
  * GOOGLE APPS SCRIPT FOR AUTOMATIC POINTS & PLACEMENT CALCULATION
  * 
  * Paste this script into Extensions > Apps Script in your Google Sheet.
- * It will run automatically whenever you change the "Alive" column to 0 or empty.
+ * It will run automatically whenever you edit columns C (Alive symbols), D (Kills), or F (Alive numeric).
  */
 
 function onEdit(e) {
@@ -16,8 +16,8 @@ function onEdit(e) {
   var row = range.getRow();
   var col = range.getColumn();
   
-  // Trigger on edits in Column C (Alive symbols, Col 3) or Column D (Kills, Col 4)
-  if (col !== 3 && col !== 4) return;
+  // Trigger on Column C (3), Column D (4), or Column F (6)
+  if (col !== 3 && col !== 4 && col !== 6) return;
   
   // Skip headers (rows 1-3)
   if (row < 4) return;
@@ -33,48 +33,67 @@ function updatePoints(sheet) {
   var lastRow = sheet.getLastRow();
   if (lastRow < 4) return;
   
-  var dataRange = sheet.getRange(4, 2, lastRow - 3, 6); // Read columns B to G
+  // Read Columns B (2) to G (7)
+  var dataRange = sheet.getRange(4, 2, lastRow - 3, 6);
   var values = dataRange.getValues();
   
-  // 1. Count how many teams are still alive in Column C (index 1 in values array)
+  // First pass: Determine how many teams are still alive
   var aliveCount = 0;
   for (var i = 0; i < values.length; i++) {
-    var aliveVal = String(values[i][1]).trim();
-    var isAlive = (aliveVal !== '0' && aliveVal !== '');
+    var aliveVal = String(values[i][1]).trim();    // Col C
+    var aliveNumVal = String(values[i][4]).trim(); // Col F
+    
+    var isAlive = (aliveVal !== '0' && aliveVal !== '') && (aliveNumVal !== '0' && aliveNumVal !== '');
     if (isAlive) {
       aliveCount++;
     }
   }
   
-  // 2. Loop through all rows to assign rank & calculate points
+  // Second pass: Calculate ranks, sync columns, and write points
   for (var i = 0; i < values.length; i++) {
     var teamName = values[i][0];
     if (!teamName || String(teamName).trim() === "") continue;
     
     var aliveVal = String(values[i][1]).trim();
+    var aliveNumVal = String(values[i][4]).trim();
     var kills = parseInt(values[i][2]) || 0;
-    var currentRank = values[i][5]; // Column G (Rank, index 5 in values)
+    var currentRank = values[i][5]; // Column G (Rank)
     
-    var isAlive = (aliveVal !== '0' && aliveVal !== '');
+    var isAlive = (aliveVal !== '0' && aliveVal !== '') && (aliveNumVal !== '0' && aliveNumVal !== '');
     var rank = 0;
+    var sheetRow = i + 4;
     
     if (isAlive) {
-      // If only 1 team remains alive, they are the Winner (#1)
+      // Sync Col C (symbols) with Col F (numeric)
+      var num = parseInt(aliveNumVal) || 0;
+      if (num > 0) {
+        var currentBars = String(aliveVal).trim();
+        var expectedBars = '▌'.repeat(num);
+        if (currentBars !== expectedBars) {
+          sheet.getRange(sheetRow, 3).setValue(expectedBars);
+        }
+      }
+      
+      // If only 1 team is left alive, they are Rank #1
       if (aliveCount === 1) {
         rank = 1;
       }
     } else {
-      // If team is eliminated:
-      // Keep their existing rank if it was already recorded
+      // If eliminated, sync Col C to empty and Col F to 0
+      if (aliveVal !== '' || aliveNumVal !== '0') {
+        sheet.getRange(sheetRow, 3).setValue('');
+        sheet.getRange(sheetRow, 6).setValue(0);
+      }
+      
+      // Use existing rank if set, otherwise assign rank based on aliveCount
       if (currentRank && String(currentRank).trim() !== "") {
         rank = parseInt(currentRank) || 0;
       } else {
-        // Otherwise, calculate their rank: Rank = (Alive Teams Count + 1)
         rank = aliveCount + 1;
       }
     }
     
-    // 3. BGMI / PUBG Point Distribution Matrix
+    // BGMI/PUBG Point Matrix: #1=10, #2=6, #3=5, #4=4, #5=3, #6=2, #7-#8=1, rest=0
     var placementPoints = 0;
     if (rank === 1) placementPoints = 10;
     else if (rank === 2) placementPoints = 6;
@@ -85,15 +104,15 @@ function updatePoints(sheet) {
     else if (rank === 7 || rank === 8) placementPoints = 1;
     
     var totalPoints = kills + placementPoints;
-    var sheetRow = i + 4;
     
-    // Write calculations back to the sheet
-    sheet.getRange(sheetRow, 5).setValue(totalPoints); // Column E (Points)
+    // Write total points to Column E (Points)
+    sheet.getRange(sheetRow, 5).setValue(totalPoints);
     
+    // Write rank to Column G (Rank)
     if (rank > 0) {
-      sheet.getRange(sheetRow, 7).setValue(rank); // Column G (Rank)
+      sheet.getRange(sheetRow, 7).setValue(rank);
     } else {
-      sheet.getRange(sheetRow, 7).clearContent(); // Column G (Rank)
+      sheet.getRange(sheetRow, 7).clearContent();
     }
   }
 }
