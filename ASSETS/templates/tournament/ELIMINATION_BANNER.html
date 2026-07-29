@@ -175,6 +175,15 @@
       return url;
     }
 
+    function isValidTeamName(name) {
+      if (!name || typeof name !== 'string') return false;
+      let trimmed = name.replace(/^["']|["']$/g, '').trim();
+      if (trimmed.length < 2 || trimmed.length > 40) return false;
+      let lower = trimmed.toLowerCase();
+      if (lower === 'teams' || lower === 'team name' || lower === 'teamname' || lower === 'team' || lower === 'status' || lower === 'kills' || lower === 'alive' || lower === 'position') return false;
+      return true;
+    }
+
     async function runTemplateUpdate() {
       let csvUrl = (e('f0') ? e('f0').innerText.trim() : '');
       let targetTeam = (e('f1') ? e('f1').innerText.trim().toLowerCase() : '');
@@ -200,44 +209,74 @@
         }
         let rows = parseCSV(text);
 
-        let teamData = null;
+        let allTeams = [];
         for (let row of rows) {
           if (!row || row.length < 2) continue;
-          let nameInSheet = (row[1] || '').trim().toLowerCase();
-          if (nameInSheet && (nameInSheet === targetTeam || targetTeam === '')) {
-            let aliveCount = 0;
-            if (row[2] !== undefined) {
-              let str = row[2].trim();
-              let barCount = (str.match(/[▌█|]/g) || []).length;
-              if (barCount > 0) {
-                aliveCount = barCount;
-              } else {
-                let parsed = parseInt(str, 10);
-                aliveCount = isNaN(parsed) ? 0 : parsed;
-              }
+          let nameCandidate = (row[1] || '').trim();
+          if (!isValidTeamName(nameCandidate)) continue;
+
+          let aliveCount = 0;
+          if (row[2] !== undefined) {
+            let str = row[2].trim();
+            let barCount = (str.match(/[▌█|]/g) || []).length;
+            if (barCount > 0) {
+              aliveCount = barCount;
+            } else {
+              let parsed = parseInt(str, 10);
+              aliveCount = isNaN(parsed) ? 0 : parsed;
             }
-            teamData = {
-              name: (row[1] || 'Unknown Team').trim(),
-              status: (aliveCount === 0 ? 'ELIMINATED' : 'ACTIVE'),
-              kills: (row[3] || '0').trim(),
-              position: '-'
-            };
-            break;
           }
+
+          let killsVal = 0;
+          if (row[3] !== undefined && row[3] !== '') {
+            killsVal = parseInt(row[3].trim(), 10);
+            if (isNaN(killsVal)) killsVal = 0;
+          }
+
+          allTeams.push({
+            name: nameCandidate,
+            alive: aliveCount,
+            kills: killsVal
+          });
+        }
+
+        let targetTeamData = allTeams.find(x => x.name.toLowerCase() === targetTeam);
+        let teamData = null;
+
+        if (targetTeamData) {
+          let aliveTeams = allTeams.filter(x => x.alive > 0);
+          let isTargetAliveInSheet = targetTeamData.alive > 0;
+          
+          let placement = aliveTeams.length;
+          if (!isTargetAliveInSheet) {
+            placement = aliveTeams.length + 1;
+          }
+
+          teamData = {
+            name: targetTeamData.name,
+            status: 'ELIMINATED',
+            kills: String(targetTeamData.kills),
+            position: '#' + placement
+          };
         }
 
         if (teamData) {
           e('teamName').innerText = teamData.name;
           e('statusHeader').innerText = teamData.status;
           e('killsVal').innerText = teamData.kills;
-          // Hide position stat-item since column E/F is no longer used
-          if (e('posVal') && e('posVal').parentElement) {
-            e('posVal').parentElement.style.display = 'none';
+          if (e('posVal')) {
+            e('posVal').innerText = teamData.position;
+            if (e('posVal').parentElement) {
+              e('posVal').parentElement.style.display = ''; // Ensure visible
+            }
           }
         } else {
           e('teamName').innerText = (e('f1') ? e('f1').innerText.trim() : '') || 'TEAM ELIMINATED';
           e('statusHeader').innerText = 'ELIMINATED';
           e('killsVal').innerText = '0';
+          if (e('posVal') && e('posVal').parentElement) {
+            e('posVal').parentElement.style.display = 'none';
+          }
         }
       } catch (err) {
         console.error("CSV Fetch Error:", err);

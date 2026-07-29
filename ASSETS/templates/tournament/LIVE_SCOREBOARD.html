@@ -554,6 +554,11 @@
           const aliveEl = e('alive_' + id);
           if (t.alive === 0 && prev.alive > 0) {
             if (!row.classList.contains('eliminated')) {
+              // Calculate placement: number of teams currently alive + 1
+              let aliveCountAfter = teams.filter(x => x.alive > 0).length;
+              let placement = aliveCountAfter + 1;
+              t.placement = placement;
+
               markEliminated(row, id, t);
               popupQueue.push(t);
               drainPopupQueue();
@@ -653,6 +658,7 @@
 
     function showElimPopup(team, done) {
       e('elimPopupTeam').innerText = team.name.toUpperCase();
+      e('elimPopupLabel').innerText = `ELIMINATED AT #${team.placement || '-'}`;
       e('elimPopupSub').innerText  = `TOTAL KILLS: ${team.kills}`;
       const pop = e('elimPopup');
 
