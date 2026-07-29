@@ -17,120 +17,39 @@
       font-family: 'Rajdhani', sans-serif;
     }
 
-    /* ── Main Scoreboard Panel (Right Side) ────────────────────────── */
-    #scorePanel {
+    /* ── Main Fullscreen Wrapper with Pre-rendered Background ─────── */
+    #overlayWrapper {
       position: absolute;
-      top: 50%;
-      right: 20px;
-      transform: translateY(-50%) translateX(120%);
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: url('/media/scoreboard_bg.png') no-repeat center center;
+      background-size: cover;
       opacity: 0;
-      width: 360px;
-      max-height: 92vh;
-      background: linear-gradient(180deg, rgba(8, 10, 24, 0.97) 0%, rgba(15, 18, 40, 0.97) 100%);
-      border: 2px solid #00d4ff;
-      border-radius: 12px;
-      box-shadow: 0 0 30px rgba(0, 212, 255, 0.35), inset 0 0 20px rgba(0, 212, 255, 0.05);
+      pointer-events: none;
+    }
+
+    /* ── Team Rows Container (Aligned to Pre-rendered Grid) ───────── */
+    #teamList {
+      position: absolute;
+      top: 18.06vh;      /* Aligns with top row of the pre-rendered grid (~195px at 1080p) */
+      right: 17.5vw;     /* Aligns with column boundaries (~336px at 1920p) */
+      width: 15.625vw;   /* Aligns with grid width (~300px at 1920p) */
+      height: 68.5vh;    /* Height covering all 16 rows (~740px at 1080p) */
       display: flex;
       flex-direction: column;
       overflow: hidden;
     }
 
-    /* ── Header ────────────────────────────────────────────────────── */
-    #panelHeader {
-      background: linear-gradient(90deg, #002b36 0%, #00121a 100%);
-      border-bottom: 2px solid #00d4ff;
-      padding: 12px 16px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-shrink: 0;
-    }
-
-    #panelTitle {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 14px;
-      font-weight: 900;
-      color: #00d4ff;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
-    }
-
-    #liveIndicator {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 11px;
-      font-weight: 700;
-      color: #00ff88;
-      letter-spacing: 1px;
-    }
-
-    #liveDot {
-      width: 8px;
-      height: 8px;
-      background: #00ff88;
-      border-radius: 50%;
-      box-shadow: 0 0 8px #00ff88;
-      animation: pulse 1.5s infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50%       { opacity: 0.4; transform: scale(0.8); }
-    }
-
-    /* ── Column Headers (Team Name | Kills | Alive) ────────────────── */
-    #colHeaders {
-      display: grid;
-      grid-template-columns: 1fr 65px 75px;
-      padding: 8px 14px;
-      border-bottom: 1px solid rgba(0, 212, 255, 0.2);
-      background: rgba(0, 212, 255, 0.08);
-      flex-shrink: 0;
-    }
-
-    .col-hdr {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 11px;
-      font-weight: 700;
-      color: #00d4ff;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      text-align: center;
-    }
-    .col-hdr.name { text-align: left; }
-
-    /* ── Team Rows Container ───────────────────────────────────────── */
-    #teamList {
-      overflow-y: auto;
-      flex-grow: 1;
-      padding: 4px 0;
-      display: flex;
-      flex-direction: column;
-    }
-
-    #teamList::-webkit-scrollbar { width: 4px; }
-    #teamList::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
-    #teamList::-webkit-scrollbar-thumb { background: #00d4ff; border-radius: 2px; }
-
     .team-row {
       display: grid;
-      grid-template-columns: 1fr 65px 75px;
-      padding: 7px 14px;
+      grid-template-columns: 1fr 2.3vw 3.0vw;
+      height: 4.28vh;    /* Height of a single grid row (~46.2px per row) */
       align-items: center;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-      transition: background 0.4s ease;
+      border-bottom: none;
+      background: transparent !important;
       position: relative;
-    }
-
-    .team-row:nth-child(even) {
-      background: rgba(255, 255, 255, 0.02);
-    }
-
-    .team-row.eliminated {
-      background: rgba(180, 0, 0, 0.22) !important;
-      border-bottom-color: rgba(255, 0, 0, 0.15);
     }
 
     .team-name-cell {
@@ -141,6 +60,7 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      padding-left: 8px;
     }
 
     .team-row.eliminated .team-name-cell {
@@ -165,7 +85,7 @@
       color: #ffffff;
       text-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
       letter-spacing: 2px;
-      font-size: 13px;
+      font-size: 12px;
     }
 
     .alive-cell.zero {
@@ -175,32 +95,7 @@
       text-shadow: 0 0 8px rgba(255, 23, 68, 0.6);
     }
 
-    /* ── Footer Stats ──────────────────────────────────────────────── */
-    #panelFooter {
-      border-top: 1px solid rgba(0, 212, 255, 0.2);
-      padding: 10px 16px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: rgba(0, 212, 255, 0.04);
-      flex-shrink: 0;
-    }
-
-    #aliveCount {
-      font-size: 13px;
-      color: #00ff88;
-      font-weight: 700;
-      letter-spacing: 1px;
-    }
-
-    #elimCount {
-      font-size: 13px;
-      color: #ff1744;
-      font-weight: 700;
-      letter-spacing: 1px;
-    }
-
-    /* ── Elimination Centre Banner Popup ───────────────────────────── */
+    /* ── Elimination Centre Banner Popup (Centre Screen) ───────────── */
     #elimPopup {
       position: absolute;
       bottom: 12vh;
@@ -352,6 +247,7 @@
       if (typeof runTemplateUpdate === 'function') runTemplateUpdate();
     }
 
+    // SPX Playout Actions
     function play() {
       runTemplateUpdate();
     }
@@ -479,8 +375,6 @@
           updateTable(teams);
         }
 
-        updateFooter(teams);
-
         teams.forEach(t => {
           prevData[t.name] = { kills: t.kills, alive: t.alive };
         });
@@ -578,7 +472,7 @@
         }
       });
 
-      // Reorder the DOM nodes smoothly to match the sorted order
+      // Reorder DOM elements
       reorderDOM(teams);
     }
 
@@ -603,7 +497,7 @@
 
       anime({
         targets: row,
-        backgroundColor: ['rgba(255, 23, 68, 0.5)', 'rgba(180, 0, 0, 0.22)'],
+        backgroundColor: ['rgba(255, 23, 68, 0.5)', 'rgba(0,0,0,0)'],
         duration: 800,
         easing: 'easeOutCubic'
       });
@@ -683,19 +577,13 @@
         });
     }
 
-    // Update footer totals
     function updateFooter(teams) {
-      const alive = teams.filter(t => t.alive > 0).length;
-      const elim  = teams.filter(t => t.alive === 0).length;
-      e('aliveCount').innerText = `✔ ALIVE: ${alive}`;
-      e('elimCount').innerText  = `✖ OUT: ${elim}`;
+      // Pre-rendered layout already displays active footer counts
     }
 
     function showPanel() {
       anime({
-        targets: '#scorePanel',
-        translateX: ['120%', '0%'],
-        translateY: '-50%',
+        targets: '#overlayWrapper',
         opacity: [0, 1],
         duration: 700,
         easing: 'easeOutCubic'
@@ -707,8 +595,7 @@
       isRunning = false;
       isInitialized = false;
       anime({
-        targets: '#scorePanel',
-        translateX: ['0%', '120%'],
+        targets: '#overlayWrapper',
         opacity: [1, 0],
         duration: 500,
         easing: 'easeInCubic'
@@ -719,6 +606,7 @@
       return text.split(/\r\n|\n/).map(line => line.split(','));
     }
 
+    // Helper to escape special characters for IDs
     function safeid(name) {
       return name.replace(/[^a-zA-Z0-9]/g, '_');
     }
@@ -752,29 +640,9 @@
 
   <div id="f0" style="display:none;"></div>
 
-  <!-- RIGHT SIDE SCOREBOARD PANEL -->
-  <div id="scorePanel">
-    <div id="panelHeader">
-      <div id="panelTitle">🏆 Live Scoreboard</div>
-      <div id="liveIndicator">
-        <div id="liveDot"></div>
-        LIVE
-      </div>
-    </div>
-
-    <!-- 3 Columns: TEAM | KILLS | ALIVE -->
-    <div id="colHeaders">
-      <div class="col-hdr name">TEAM</div>
-      <div class="col-hdr">KILLS</div>
-      <div class="col-hdr">ALIVE</div>
-    </div>
-
+  <!-- FULLSCREEN WRAPPER WITH PRE-RENDERED BACKGROUND & DYNAMIC TEXT OVERLAY -->
+  <div id="overlayWrapper">
     <div id="teamList"></div>
-
-    <div id="panelFooter">
-      <div id="aliveCount">✔ ALIVE: —</div>
-      <div id="elimCount">✖ OUT: —</div>
-    </div>
   </div>
 
   <!-- ELIMINATION BANNER POPUP (Centre Screen) -->
