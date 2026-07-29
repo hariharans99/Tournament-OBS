@@ -24,18 +24,18 @@
       left: 0;
       width: 100vw;
       height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
       opacity: 0;
       pointer-events: none;
     }
 
     /* Locked aspect ratio container matching 1024x682 (ratio 1.5) */
     #boardContainer {
-      position: relative;
-      width: 150vh;
-      height: 100vh;
+      position: absolute;
+      right: 0vw;         /* Align to right-most edge */
+      top: 50%;
+      transform: translateY(-50%);
+      width: 30vw;        /* Max 30% of screen width */
+      height: 20vw;       /* Aspect ratio lock (30vw / 1.5 = 20vw) */
       background: url('/media/scoreboard_bg.png') no-repeat center center;
       background-size: contain;
     }
@@ -43,10 +43,10 @@
     /* ── Team Rows Container ───────── */
     #teamList {
       position: absolute;
-      top: 18.06vh;      /* Aligns with top row of the pre-rendered grid */
-      right: 26.39vh;    /* Aligns with column boundaries (measured in vh to lock to image) */
-      width: 23.46vh;    /* Grid width (measured in vh to lock to image) */
-      height: 68.5vh;    /* Height covering all 16 rows */
+      top: 18.03%;       /* Aligns with top row of the pre-rendered grid (123px / 682px) */
+      right: 34.375%;    /* Aligns with column boundaries (352px / 1024px) */
+      width: 31.25%;     /* Grid width (320px / 1024px) */
+      height: 68.47%;    /* Height covering all 16 rows (467px / 682px) */
       display: flex;
       flex-direction: column;
       overflow: hidden;
@@ -54,8 +54,8 @@
 
     .team-row {
       display: grid;
-      grid-template-columns: 1fr 3.45vh 4.5vh;
-      height: 4.28vh;    /* Height of a single grid row */
+      grid-template-columns: 1fr 18% 25%;
+      height: 6.25%;     /* 100% / 16 rows = 6.25% height per row */
       align-items: center;
       border-bottom: none;
       background: transparent !important;
@@ -63,14 +63,14 @@
     }
 
     .team-name-cell {
-      font-size: 14px;
+      font-size: 0.8vw;
       font-weight: 700;
       color: #ffffff;
       letter-spacing: 0.5px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      padding-left: 8px;
+      padding-left: 6px;
     }
 
     .team-row.eliminated .team-name-cell {
@@ -80,7 +80,7 @@
     }
 
     .kills-cell, .alive-cell {
-      font-size: 15px;
+      font-size: 0.9vw;
       font-weight: 700;
       text-align: center;
       font-family: 'Orbitron', sans-serif;
@@ -94,14 +94,14 @@
     .alive-cell {
       color: #ffffff;
       text-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
-      letter-spacing: 2px;
-      font-size: 12px;
+      letter-spacing: 0.1vw;
+      font-size: 0.8vw;
     }
 
     .alive-cell.zero {
       color: #ff1744;
-      font-size: 11px;
-      letter-spacing: 1px;
+      font-size: 0.7vw;
+      letter-spacing: 0.05vw;
       text-shadow: 0 0 8px rgba(255, 23, 68, 0.6);
     }
 
