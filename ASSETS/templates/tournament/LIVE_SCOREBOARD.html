@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Tournament Live Scoreboard</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet"/>
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: transparent;
+      font-family: 'Rajdhani', sans-serif;
+    }
+
+    /* ── Main Scoreboard Panel (Right Side) ────────────────────────── */
+    #scorePanel {
+      position: absolute;
+      top: 50%;
+      right: 20px;
+      transform: translateY(-50%) translateX(120%);
+      opacity: 0;
+      width: 360px;
+      max-height: 92vh;
+      background: linear-gradient(180deg, rgba(8, 10, 24, 0.97) 0%, rgba(15, 18, 40, 0.97) 100%);
+      border: 2px solid #00d4ff;
+      border-radius: 12px;
+      box-shadow: 0 0 30px rgba(0, 212, 255, 0.35), inset 0 0 20px rgba(0, 212, 255, 0.05);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ── Header ────────────────────────────────────────────────────── */
+    #panelHeader {
+      background: linear-gradient(90deg, #002b36 0%, #00121a 100%);
+      border-bottom: 2px solid #00d4ff;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    #panelTitle {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 14px;
+      font-weight: 900;
+      color: #00d4ff;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+    }
+
+    #liveIndicator {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #00ff88;
+      letter-spacing: 1px;
+    }
+
+    #liveDot {
+      width: 8px;
+      height: 8px;
+      background: #00ff88;
+      border-radius: 50%;
+      box-shadow: 0 0 8px #00ff88;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.4; transform: scale(0.8); }
+    }
+
+    /* ── Column Headers (Team Name | Kills | Alive) ────────────────── */
+    #colHeaders {
+      display: grid;
+      grid-template-columns: 1fr 65px 65px;
+      padding: 8px 14px;
+      border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+      background: rgba(0, 212, 255, 0.08);
+      flex-shrink: 0;
+    }
+
+    .col-hdr {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      color: #00d4ff;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      text-align: center;
+    }
+    .col-hdr.name { text-align: left; }
+
+    /* ── Team Rows Container ───────────────────────────────────────── */
+    #teamList {
+      overflow-y: auto;
+      flex-grow: 1;
+      padding: 4px 0;
+    }
+
+    #teamList::-webkit-scrollbar { width: 4px; }
+    #teamList::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+    #teamList::-webkit-scrollbar-thumb { background: #00d4ff; border-radius: 2px; }
+
+    .team-row {
+      display: grid;
+      grid-template-columns: 1fr 65px 65px;
+      padding: 7px 14px;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      transition: background 0.4s ease;
+      position: relative;
+    }
+
+    .team-row:nth-child(even) {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .team-row.eliminated {
+      background: rgba(180, 0, 0, 0.22) !important;
+      border-bottom-color: rgba(255, 0, 0, 0.15);
+    }
+
+    .team-name-cell {
+      font-size: 14px;
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .team-row.eliminated .team-name-cell {
+      color: #ff5252;
+      text-decoration: line-through;
+      text-decoration-color: #ff1744;
+    }
+
+    .kills-cell, .alive-cell {
+      font-size: 15px;
+      font-weight: 700;
+      text-align: center;
+      font-family: 'Orbitron', sans-serif;
+    }
+
+    .kills-cell {
+      color: #ffcc00;
+      text-shadow: 0 0 8px rgba(255, 204, 0, 0.4);
+    }
+
+    .alive-cell {
+      color: #00ff88;
+      text-shadow: 0 0 8px rgba(0, 255, 136, 0.4);
+    }
+
+    .alive-cell.zero {
+      color: #ff1744;
+      font-size: 11px;
+      letter-spacing: 1px;
+      text-shadow: 0 0 8px rgba(255, 23, 68, 0.6);
+    }
+
+    /* ── Footer Stats ──────────────────────────────────────────────── */
+    #panelFooter {
+      border-top: 1px solid rgba(0, 212, 255, 0.2);
+      padding: 10px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(0, 212, 255, 0.04);
+      flex-shrink: 0;
+    }
+
+    #aliveCount {
+      font-size: 13px;
+      color: #00ff88;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+
+    #elimCount {
+      font-size: 13px;
+      color: #ff1744;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+
+    /* ── Elimination Centre Banner Popup ───────────────────────────── */
+    #elimPopup {
+      position: absolute;
+      bottom: 12vh;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      opacity: 0;
+      z-index: 999;
+      pointer-events: none;
+    }
+
+    #elimPopupBox {
+      background: linear-gradient(135deg, #1a0003 0%, #3a0007 50%, #1a0003 100%);
+      border: 3px solid #ff1744;
+      box-shadow: 0 0 45px rgba(255, 23, 68, 0.8), inset 0 0 20px rgba(255, 23, 68, 0.3);
+      border-radius: 12px;
+      padding: 22px 55px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+
+    #elimPopupBox::before {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%; width: 100%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+      transform: skewX(-25deg);
+      animation: popupShine 2s infinite;
+    }
+
+    @keyframes popupShine {
+      0% { left: -100%; }
+      60%, 100% { left: 200%; }
+    }
+
+    #elimPopupLabel {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1vw;
+      font-weight: 700;
+      color: #ff8a80;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    #elimPopupTeam {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 2.6vw;
+      font-weight: 900;
+      color: #ffffff;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      text-shadow: 0 0 25px rgba(255, 255, 255, 0.6), 3px 3px 6px rgba(0,0,0,0.9);
+    }
+
+    #elimPopupSub {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1.2vw;
+      font-weight: 700;
+      color: #ffcdd2;
+      margin-top: 6px;
+      letter-spacing: 2px;
+    }
+  </style>
+
+  <script>
+    const DEFAULT_CSV_URL = "https://docs.google.com/spreadsheets/d/1Lm61yqAgFFZRIOQxlsK_27s7B77vtOiYk9g_Uq-EZ_8/edit?gid=1030597977#gid=1030597977";
+    const REFRESH_MS      = 2000; // Poll Google Sheet every 2 seconds
+
+    let rawCsvUrl    = '';
+    let prevData     = {};    // Map of teamName -> { kills, alive }
+    let refreshTimer = null;
+    let popupQueue   = [];
+    let popupBusy    = false;
+    let isInitialized = false;
+    let isRunning = false;
+
+    function extractSheetId(url) {
+      if (!url) return '';
+      let match = url.match(/\/d\/(?!e\/)([a-zA-Z0-9-_]+)/);
+      return match ? match[1] : '';
+    }
+
+    function extractGid(url) {
+      if (!url) return '0';
+      let match = url.match(/gid=([0-9]+)/);
+      return match ? match[1] : '0';
+    }
+
+    function cleanGoogleSheetUrl(url) {
+      if (!url) return DEFAULT_CSV_URL;
+      url = url.trim();
+
+      if (url.startsWith('<iframe') || url.includes('src=')) {
+        let srcMatch = url.match(/src=["']([^"']+)["']/);
+        if (srcMatch && srcMatch[1]) {
+          url = srcMatch[1];
+        }
+      }
+
+      url = url.replace(/&amp;/g, '&');
+
+      if (url.includes('/pubhtml')) {
+        let gidPart = extractGid(url);
+        let basePart = url.split('/pubhtml')[0];
+        return `${basePart}/pub?output=csv&gid=${gidPart}`;
+      }
+
+      return url;
+    }
+
+    function isValidTeamName(name) {
+      if (!name || typeof name !== 'string') return false;
+      let trimmed = name.replace(/^["']|["']$/g, '').trim();
+      if (trimmed.length < 2 || trimmed.length > 40) return false;
+      let lower = trimmed.toLowerCase();
+
+      if (lower === 'teams' || lower === 'team name' || lower === 'teamname' || lower === 'team' || lower === 'status' || lower === 'kills' || lower === 'alive' || lower === 'position') return false;
+
+      if (trimmed.includes('{') || trimmed.includes('}') || trimmed.includes('=') ||
+          trimmed.includes(';') || trimmed.includes(':') || trimmed.includes('#') ||
+          trimmed.includes('<') || trimmed.includes('>') || trimmed.includes('/') ||
+          lower.includes('function') || lower.includes('deleteis') ||
+          lower.includes('pageurl') || lower.includes('null') ||
+          lower.includes('body') || lower.includes('visited') || lower.includes('return')) {
+        return false;
+      }
+
+      return true;
+    }
+
+    function e(id) { return document.getElementById(id); }
+
+    function update(data) {
+      const d = typeof data === 'string' ? JSON.parse(data) : data;
+      for (const k in d) {
+        const el = document.getElementById(k);
+        if (el) el.innerText = d[k] || '';
+      }
+      if (typeof runTemplateUpdate === 'function') runTemplateUpdate();
+    }
+
+    function play() {
+      runTemplateUpdate();
+    }
+    function stop() { hidePanel(); }
+
+    async function runTemplateUpdate() {
+      let fieldVal = e('f0') ? e('f0').innerText.trim() : '';
+      rawCsvUrl = fieldVal || DEFAULT_CSV_URL;
+
+      if (isRunning) {
+        await fetchAndRender(false);
+        return;
+      }
+      isRunning = true;
+
+      await fetchAndRender(true);
+      isInitialized = true;
+      showPanel();
+
+      // Start high-performance dynamic poll loop (prevents network overlap and lag)
+      triggerNextPoll();
+    }
+
+    function triggerNextPoll() {
+      if (!isRunning) return;
+      refreshTimer = setTimeout(async () => {
+        if (!isRunning) return;
+        await fetchAndRender(false);
+        triggerNextPoll(); // Schedule next poll only after this fetch is fully completed
+      }, REFRESH_MS);
+    }
+
+    async function fetchAndRender(isFirstLoad) {
+      try {
+        let text = '';
+        const targetCsvUrl = cleanGoogleSheetUrl(rawCsvUrl);
+        let sheetId = extractSheetId(rawCsvUrl);
+        let gid = extractGid(rawCsvUrl);
+        
+        // 1. Try DIRECT export URL first
+        if (sheetId) {
+          let exportUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${gid}`;
+          try {
+            const proxyRes = await fetch('/api/fetchUrl?url=' + encodeURIComponent(exportUrl));
+            if (proxyRes.ok) {
+              let tempText = await proxyRes.text();
+              if (tempText && !tempText.startsWith('<!DOCTYPE') && !tempText.startsWith('<html')) {
+                text = tempText;
+              }
+            }
+          } catch (errExport) {
+            console.warn('Direct export fetch failed, falling back...', errExport);
+          }
+        }
+
+        // 2. Fallback to Published URL
+        if (!text) {
+          try {
+            const proxyRes = await fetch('/api/fetchUrl?url=' + encodeURIComponent(targetCsvUrl));
+            if (proxyRes.ok) {
+              text = await proxyRes.text();
+            }
+          } catch (errProxy) {
+            console.warn('Proxy fetch warning:', errProxy);
+          }
+        }
+
+        // 3. Fallback to Direct Fetch
+        if (!text) {
+          try {
+            const directRes = await fetch(targetCsvUrl);
+            if (directRes.ok) {
+              text = await directRes.text();
+            }
+          } catch (errDirect) {
+            console.warn('Direct fetch warning:', errDirect);
+          }
+        }
+
+        if (!text || text.startsWith('<!DOCTYPE') || text.startsWith('<html')) {
+          console.warn('Received HTML or empty text from CSV endpoint');
+          return;
+        }
+
+        const rows  = parseCSV(text);
+        const teams = [];
+
+        for (let r of rows) {
+          if (!r || r.length < 2) continue;
+
+          let nameCandidate = (r[1] || '').trim();
+          if (!isValidTeamName(nameCandidate)) continue;
+
+          // Alive value (Column C = index 2)
+          let aliveVal = 0;
+          if (r[2] !== undefined) {
+            let str = r[2].trim();
+            let barCount = (str.match(/[▌█|]/g) || []).length;
+            if (barCount > 0) {
+              aliveVal = barCount;
+            } else {
+              let parsed = parseInt(str, 10);
+              aliveVal = isNaN(parsed) ? 0 : parsed;
+            }
+          }
+
+          // Kills value (Column D = index 3)
+          let killsVal = 0;
+          if (r[3] !== undefined && r[3] !== '') {
+            killsVal = parseInt(r[3].trim(), 10);
+            if (isNaN(killsVal)) killsVal = 0;
+          }
+
+          teams.push({
+            name:  nameCandidate,
+            alive: aliveVal,
+            kills: killsVal
+          });
+        }
+
+        if (teams.length === 0) return;
+
+        if (isFirstLoad || e('teamList').children.length === 0) {
+          buildTable(teams);
+        } else {
+          updateTable(teams);
+        }
+
+        updateFooter(teams);
+
+        teams.forEach(t => {
+          prevData[t.name] = { kills: t.kills, alive: t.alive };
+        });
+
+      } catch (err) {
+        console.error('Error fetching CSV:', err);
+      }
+    }
+
+    function buildTable(teams) {
+      const list = e('teamList');
+      list.innerHTML = '';
+
+      teams.forEach((t, i) => {
+        const row = document.createElement('div');
+        const isOut = (t.alive === 0);
+        row.className = 'team-row' + (isOut ? ' eliminated' : '');
+        row.id = 'row_' + safeid(t.name);
+
+        row.innerHTML = `
+          <div class="team-name-cell" title="${t.name}">${t.name}</div>
+          <div class="kills-cell" id="kills_${safeid(t.name)}">${t.kills}</div>
+          <div class="alive-cell ${isOut ? 'zero' : ''}" id="alive_${safeid(t.name)}">${isOut ? 'OUT' : t.alive}</div>
+        `;
+        list.appendChild(row);
+
+        anime({
+          targets: row,
+          opacity: [0, 1],
+          translateX: ['30px', '0px'],
+          duration: 350,
+          delay: i * 25,
+          easing: 'easeOutCubic'
+        });
+      });
+    }
+
+    function updateTable(teams) {
+      teams.forEach(t => {
+        const id   = safeid(t.name);
+        const row  = e('row_' + id);
+        if (!row) return;
+
+        const prev = prevData[t.name] || { kills: t.kills, alive: t.alive };
+
+        if (t.kills !== prev.kills) {
+          animateNumber('kills_' + id, prev.kills, t.kills, '#ffcc00');
+          flashRow(row, 'rgba(255, 204, 0, 0.2)');
+        }
+
+        if (t.alive !== prev.alive) {
+          if (t.alive === 0 && prev.alive > 0) {
+            // ONLY trigger elimination if the row is not already marked as eliminated (prevents loops)
+            if (!row.classList.contains('eliminated')) {
+              markEliminated(row, id, t);
+              popupQueue.push(t);
+              drainPopupQueue();
+            }
+          } else {
+            // Restore team from eliminated state to active state if resurrected
+            if (prev.alive === 0 && t.alive > 0) {
+              row.classList.remove('eliminated');
+              row.style.backgroundColor = '';
+              const aliveEl = e('alive_' + id);
+              if (aliveEl) aliveEl.className = 'alive-cell';
+            }
+            animateNumber('alive_' + id, prev.alive, t.alive, '#00ff88');
+            flashRow(row, 'rgba(0, 255, 136, 0.2)');
+          }
+        }
+      });
+    }
+
+    function markEliminated(row, id, t) {
+      const aliveEl = e('alive_' + id);
+      if (aliveEl) {
+        aliveEl.className = 'alive-cell zero';
+        aliveEl.innerText = 'OUT';
+      }
+
+      row.classList.add('eliminated');
+
+      anime({
+        targets: row,
+        backgroundColor: ['rgba(255, 23, 68, 0.5)', 'rgba(180, 0, 0, 0.22)'],
+        duration: 800,
+        easing: 'easeOutCubic'
+      });
+    }
+
+    function animateNumber(elemId, from, to, color) {
+      const el = e(elemId);
+      if (!el) return;
+      const obj = { val: from };
+
+      anime({
+        targets: obj,
+        val: to,
+        duration: 600,
+        easing: 'easeOutCubic',
+        round: 1,
+        update: () => { el.innerText = obj.val; }
+      });
+
+      anime({
+        targets: el,
+        scale: [1.35, 1],
+        color: [color, null],
+        duration: 500,
+        easing: 'easeOutBack'
+      });
+    }
+
+    function flashRow(row, color) {
+      anime({
+        targets: row,
+        background: [color, 'rgba(0,0,0,0)'],
+        duration: 1000,
+        easing: 'easeOutCubic'
+      });
+    }
+
+    function drainPopupQueue() {
+      if (popupBusy || popupQueue.length === 0) return;
+      popupBusy = true;
+      const t = popupQueue.shift();
+      showElimPopup(t, () => {
+        popupBusy = false;
+        drainPopupQueue();
+      });
+    }
+
+    function showElimPopup(team, done) {
+      e('elimPopupTeam').innerText = team.name.toUpperCase();
+      e('elimPopupSub').innerText  = `TOTAL KILLS: ${team.kills}`;
+      const pop = e('elimPopup');
+
+      anime.timeline({ easing: 'easeOutElastic(1, 0.7)' })
+        .add({
+          targets: pop,
+          translateX: ['-50%', '-50%'],
+          translateY: ['80px', '0px'],
+          opacity: [0, 1],
+          duration: 750
+        })
+        .add({
+          targets: '#elimPopupBox',
+          scale: [0.85, 1],
+          duration: 500
+        }, '-=600')
+        .add({
+          targets: pop,
+          opacity: [1, 0],
+          translateY: ['0px', '40px'],
+          duration: 600,
+          easing: 'easeInCubic',
+          delay: 4000
+        })
+        .finished.then(() => {
+          pop.style.opacity = '0';
+          done && done();
+        });
+    }
+
+    function updateFooter(teams) {
+      const alive = teams.filter(t => t.alive > 0).length;
+      const elim  = teams.filter(t => t.alive === 0).length;
+      e('aliveCount').innerText = `✔ ALIVE: ${alive}`;
+      e('elimCount').innerText  = `✖ OUT: ${elim}`;
+    }
+
+    function showPanel() {
+      anime({
+        targets: '#scorePanel',
+        translateX: ['120%', '0%'],
+        translateY: '-50%',
+        opacity: [0, 1],
+        duration: 700,
+        easing: 'easeOutCubic'
+      });
+    }
+
+    function hidePanel() {
+      clearTimeout(refreshTimer);
+      isRunning = false;
+      isInitialized = false;
+      anime({
+        targets: '#scorePanel',
+        translateX: ['0%', '120%'],
+        opacity: [1, 0],
+        duration: 500,
+        easing: 'easeInCubic'
+      });
+    }
+
+    function parseCSV(text) {
+      return text.split(/\r\n|\n/).map(line => line.split(','));
+    }
+
+    function safeid(name) {
+      return name.replace(/[^a-zA-Z0-9]/g, '_');
+    }
+
+    // Auto-initialize when loaded directly in browser/renderer
+    window.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => {
+        if (!isInitialized) runTemplateUpdate();
+      }, 300);
+    });
+
+    window.SPXGCTemplateDefinition = {
+      "description": "Tournament Live Scoreboard (Team | Kills | Alive)",
+      "playserver": "OVERLAY",
+      "playchannel": "1",
+      "playlayer": "2",
+      "webplayout": "2",
+      "out": "manual",
+      "DataFields": [
+        {
+          "field": "f0",
+          "ftype": "textfield",
+          "title": "Google Sheet CSV URL / Embed Code",
+          "value": "https://docs.google.com/spreadsheets/d/1Lm61yqAgFFZRIOQxlsK_27s7B77vtOiYk9g_Uq-EZ_8/edit?gid=1030597977#gid=1030597977"
+        }
+      ]
+    };
+  </script>
+</head>
+<body>
+
+  <div id="f0" style="display:none;"></div>
+
+  <!-- RIGHT SIDE SCOREBOARD PANEL -->
+  <div id="scorePanel">
+    <div id="panelHeader">
+      <div id="panelTitle">🏆 Live Scoreboard</div>
+      <div id="liveIndicator">
+        <div id="liveDot"></div>
+        LIVE
+      </div>
+    </div>
+
+    <!-- 3 Columns: TEAM | KILLS | ALIVE -->
+    <div id="colHeaders">
+      <div class="col-hdr name">TEAM</div>
+      <div class="col-hdr">KILLS</div>
+      <div class="col-hdr">ALIVE</div>
+    </div>
+
+    <div id="teamList"></div>
+
+    <div id="panelFooter">
+      <div id="aliveCount">✔ ALIVE: —</div>
+      <div id="elimCount">✖ OUT: —</div>
+    </div>
+  </div>
+
+  <!-- ELIMINATION BANNER POPUP (Centre Screen) -->
+  <div id="elimPopup">
+    <div id="elimPopupBox">
+      <div id="elimPopupLabel">Team Eliminated</div>
+      <div id="elimPopupTeam">TEAM NAME</div>
+      <div id="elimPopupSub">TOTAL KILLS: 0</div>
+    </div>
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,31 @@
+{
+  "warning": "Modifications done in the SPX will overwrite this file.",
+  "copyright": "(c) 2020- SPX Graphics (https://spxgraphics.com)",
+  "updated": "2026-07-29T17:37:07.389Z",
+  "templates": [
+    {
+      "description": "Tournament Live Scoreboard (right panel)",
+      "playserver": "OVERLAY",
+      "playchannel": "1",
+      "playlayer": "2",
+      "webplayout": "2",
+      "out": "manual",
+      "dataformat": "json",
+      "uicolor": "2",
+      "DataFields": [
+        {
+          "field": "f0",
+          "ftype": "textfield",
+          "title": "Google Sheet CSV URL",
+          "value": "https://docs.google.com/spreadsheets/d/1Lm61yqAgEFZRIOQxlsK_27s7B77vtOiYk9g_Uq-EZ_8/edit?gid=1030597977#gid=1030597977"
+        }
+      ],
+      "onair": "true",
+      "imported": "1773083291300",
+      "relpath": "/tournament/LIVE_SCOREBOARD.html",
+      "itemID": "1773083297001"
+    }
+  ],
+  "project": "MyFirstProject",
+  "rundown": "Tournament"
+}
