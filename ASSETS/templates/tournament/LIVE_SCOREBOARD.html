@@ -17,26 +17,36 @@
       font-family: 'Rajdhani', sans-serif;
     }
 
-    /* ── Main Fullscreen Wrapper with Pre-rendered Background ─────── */
+    /* ── Main Fullscreen Wrapper ─────── */
     #overlayWrapper {
       position: absolute;
       top: 0;
       left: 0;
       width: 100vw;
       height: 100vh;
-      background: url('/media/scoreboard_bg.png') no-repeat center center;
-      background-size: cover;
+      display: flex;
+      justify-content: center;
+      align-items: center;
       opacity: 0;
       pointer-events: none;
     }
 
-    /* ── Team Rows Container (Aligned to Pre-rendered Grid) ───────── */
+    /* Locked aspect ratio container matching 1024x682 (ratio 1.5) */
+    #boardContainer {
+      position: relative;
+      width: 150vh;
+      height: 100vh;
+      background: url('/media/scoreboard_bg.png') no-repeat center center;
+      background-size: contain;
+    }
+
+    /* ── Team Rows Container ───────── */
     #teamList {
       position: absolute;
-      top: 18.06vh;      /* Aligns with top row of the pre-rendered grid (~195px at 1080p) */
-      right: 17.5vw;     /* Aligns with column boundaries (~336px at 1920p) */
-      width: 15.625vw;   /* Aligns with grid width (~300px at 1920p) */
-      height: 68.5vh;    /* Height covering all 16 rows (~740px at 1080p) */
+      top: 18.06vh;      /* Aligns with top row of the pre-rendered grid */
+      right: 26.39vh;    /* Aligns with column boundaries (measured in vh to lock to image) */
+      width: 23.46vh;    /* Grid width (measured in vh to lock to image) */
+      height: 68.5vh;    /* Height covering all 16 rows */
       display: flex;
       flex-direction: column;
       overflow: hidden;
@@ -44,8 +54,8 @@
 
     .team-row {
       display: grid;
-      grid-template-columns: 1fr 2.3vw 3.0vw;
-      height: 4.28vh;    /* Height of a single grid row (~46.2px per row) */
+      grid-template-columns: 1fr 3.45vh 4.5vh;
+      height: 4.28vh;    /* Height of a single grid row */
       align-items: center;
       border-bottom: none;
       background: transparent !important;
@@ -642,7 +652,9 @@
 
   <!-- FULLSCREEN WRAPPER WITH PRE-RENDERED BACKGROUND & DYNAMIC TEXT OVERLAY -->
   <div id="overlayWrapper">
-    <div id="teamList"></div>
+    <div id="boardContainer">
+      <div id="teamList"></div>
+    </div>
   </div>
 
   <!-- ELIMINATION BANNER POPUP (Centre Screen) -->
