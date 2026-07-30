@@ -23,40 +23,44 @@
       width: 1920px; height: 1080px;
       opacity: 0;
       pointer-events: none;
+      background: url('/media/points_table_bg.png') no-repeat;
+      background-size: 1920px 1080px;
     }
 
     /* Positioned over the lower brownish area of the OBS layout */
     #tableWrapper {
       position: absolute;
-      top: 452px;
-      left: 30px;
-      width: 1860px;
-      height: 600px;
+      top: 432px;
+      left: 25px;
+      width: 1870px;
+      height: 592px;
       display: flex;
       flex-direction: column;
     }
 
-    /* ── Dual column header (mirrors the 2-col team grid) ── */
+    /* ── Dual column header (absolutely positioned above the box) ── */
     #tableHeader {
+      position: absolute;
+      top: 388px;
+      left: 25px;
+      width: 1870px;
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 0 10px;
-      padding-bottom: 6px;
-      border-bottom: 2px solid rgba(255, 140, 0, 0.65);
-      margin-bottom: 5px;
-      flex-shrink: 0;
+      z-index: 10;
     }
 
     .hdr-half {
       display: grid;
-      grid-template-columns: 70px 1fr 150px 150px;
+      grid-template-columns: 75px 1fr 150px 150px;
       padding: 0 14px;
+      height: 40px;
       align-items: center;
     }
 
     .hdr-cell {
       font-family: 'Orbitron', sans-serif;
-      font-size: 14px;
+      font-size: 16px;
       font-weight: 900;
       color: #ff8c00;
       text-transform: uppercase;
@@ -77,27 +81,26 @@
     .team-col {
       display: flex;
       flex-direction: column;
+      height: 100%;
+      justify-content: space-between;
     }
 
     /* ── Team Row ── */
     .pt-row {
       display: grid;
-      grid-template-columns: 70px 1fr 150px 150px;
+      grid-template-columns: 75px 1fr 150px 150px;
       align-items: center;
-      height: 27px;
+      height: 59.2px;
       padding: 0 14px;
       opacity: 0;
       transform: translateX(-40px);
-      border-bottom: 1px solid rgba(255,255,255,0.05);
       position: relative;
     }
 
-    .pt-row:nth-child(odd)  { background: rgba(0,0,0,0.12); }
-    .pt-row:nth-child(even) { background: rgba(255,140,0,0.05); }
-
-    .pt-row.rank-1 { background: rgba(255,215,0,0.12) !important; }
-    .pt-row.rank-2 { background: rgba(192,192,192,0.09) !important; }
-    .pt-row.rank-3 { background: rgba(205,127,50,0.09) !important; }
+    /* Subtle row backgrounds/overlays for top 3 */
+    .pt-row.rank-1 { background: rgba(255,215,0,0.05) !important; }
+    .pt-row.rank-2 { background: rgba(192,192,192,0.04) !important; }
+    .pt-row.rank-3 { background: rgba(205,127,50,0.04) !important; }
 
     .pt-row.rank-1::before,
     .pt-row.rank-2::before,
@@ -113,48 +116,48 @@
 
     .rank-num {
       font-family: 'Orbitron', sans-serif;
-      font-size: 13px;
+      font-size: 20px;
       font-weight: 900;
       text-align: center;
-      color: rgba(255,255,255,0.5);
+      color: rgba(255,255,255,0.7);
       letter-spacing: 1px;
     }
-    .pt-row.rank-1 .rank-num { color: #ffd700; text-shadow: 0 0 8px rgba(255,215,0,0.7); font-size: 15px; }
-    .pt-row.rank-2 .rank-num { color: #c0c0c0; text-shadow: 0 0 8px rgba(192,192,192,0.7); }
-    .pt-row.rank-3 .rank-num { color: #cd7f32; text-shadow: 0 0 8px rgba(205,127,50,0.7); }
+    .pt-row.rank-1 .rank-num { color: #ffd700; text-shadow: 0 0 10px rgba(255,215,0,0.8); font-size: 24px; }
+    .pt-row.rank-2 .rank-num { color: #c0c0c0; text-shadow: 0 0 10px rgba(192,192,192,0.8); font-size: 22px; }
+    .pt-row.rank-3 .rank-num { color: #cd7f32; text-shadow: 0 0 10px rgba(205,127,50,0.8); font-size: 22px; }
 
     .team-name {
-      font-size: 17px;
+      font-size: 22px;
       font-weight: 700;
-      color: #f0f0f0;
+      color: #ffffff;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      padding-left: 10px;
-      letter-spacing: 0.4px;
+      padding-left: 15px;
+      letter-spacing: 0.5px;
     }
-    .pt-row.rank-1 .team-name { color: #fff5c0; }
+    .pt-row.rank-1 .team-name { color: #fff5c0; font-size: 24px; }
     .pt-row.rank-2 .team-name { color: #e8e8e8; }
     .pt-row.rank-3 .team-name { color: #f5deb3; }
 
     .kills-val {
       font-family: 'Orbitron', sans-serif;
-      font-size: 14px;
+      font-size: 22px;
       font-weight: 700;
       text-align: center;
       color: #ffc107;
-      text-shadow: 0 0 6px rgba(255,193,7,0.4);
+      text-shadow: 0 0 8px rgba(255,193,7,0.4);
     }
 
     .points-val {
       font-family: 'Orbitron', sans-serif;
-      font-size: 14px;
+      font-size: 24px;
       font-weight: 900;
       text-align: center;
       color: #ff8c00;
-      text-shadow: 0 0 8px rgba(255,140,0,0.5);
+      text-shadow: 0 0 10px rgba(255,140,0,0.6);
     }
-    .pt-row.rank-1 .points-val { color: #ffd700; text-shadow: 0 0 10px rgba(255,215,0,0.6); font-size: 15px; }
+    .pt-row.rank-1 .points-val { color: #ffd700; text-shadow: 0 0 12px rgba(255,215,0,0.7); font-size: 26px; }
   </style>
 
   <script>
@@ -380,30 +383,28 @@
   <div id="f0" style="display:none;"></div>
 
   <div id="pointsPanel">
-    <div id="tableWrapper">
-
-      <!-- Dual column headers -->
-      <div id="tableHeader">
-        <div class="hdr-half">
-          <div class="hdr-cell center">#</div>
-          <div class="hdr-cell">TEAM NAME</div>
-          <div class="hdr-cell center">KILLS</div>
-          <div class="hdr-cell center">POINTS</div>
-        </div>
-        <div class="hdr-half">
-          <div class="hdr-cell center">#</div>
-          <div class="hdr-cell">TEAM NAME</div>
-          <div class="hdr-cell center">KILLS</div>
-          <div class="hdr-cell center">POINTS</div>
-        </div>
+    <!-- Dual column headers positioned absolutely above the wrapper -->
+    <div id="tableHeader">
+      <div class="hdr-half">
+        <div class="hdr-cell center">#</div>
+        <div class="hdr-cell">TEAM NAME</div>
+        <div class="hdr-cell center">KILLS</div>
+        <div class="hdr-cell center">POINTS</div>
       </div>
+      <div class="hdr-half">
+        <div class="hdr-cell center">#</div>
+        <div class="hdr-cell">TEAM NAME</div>
+        <div class="hdr-cell center">KILLS</div>
+        <div class="hdr-cell center">POINTS</div>
+      </div>
+    </div>
 
+    <div id="tableWrapper">
       <!-- Team columns -->
       <div id="teamColumns">
         <div class="team-col" id="colLeft"></div>
         <div class="team-col" id="colRight"></div>
       </div>
-
     </div>
   </div>
 
