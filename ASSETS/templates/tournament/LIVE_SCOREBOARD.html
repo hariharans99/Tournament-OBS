@@ -626,20 +626,33 @@
 
           let stTeamColIdx = -1;
           let stTotalColIdx = -1;
+          let mode = e('f3') ? e('f3').innerText.trim() : 'Group Stage';
 
           if (stHeaderRow) {
-            stHeaderRow.forEach((cell, idx) => {
-              let c = cell.toLowerCase().trim();
-              if (stTeamColIdx === -1 && (c === 'team' || c === 'teams' || c === 'team name' || c === 'teamname')) {
-                stTeamColIdx = idx;
-              } else if (stTotalColIdx === -1 && (c.includes('total') || c.includes('points') || c === 'pts') && !c.includes('kill') && !c.includes('match')) {
-                stTotalColIdx = idx;
-              }
-            });
+            if (mode === 'Final Stage') {
+              stHeaderRow.forEach((cell, idx) => {
+                let c = cell.toLowerCase().trim();
+                if (stTeamColIdx === -1 && (c === 'team' || c === 'teams' || c === 'team name' || c === 'teamname')) {
+                  stTeamColIdx = idx;
+                }
+                if ((c.includes('total') || c.includes('points') || c === 'pts') && !c.includes('kill') && !c.includes('match')) {
+                  stTotalColIdx = idx; // Keep overwriting to get the last one (Column P)
+                }
+              });
+            } else {
+              stHeaderRow.forEach((cell, idx) => {
+                let c = cell.toLowerCase().trim();
+                if (stTeamColIdx === -1 && (c === 'team' || c === 'teams' || c === 'team name' || c === 'teamname')) {
+                  stTeamColIdx = idx;
+                } else if (stTotalColIdx === -1 && (c.includes('total') || c.includes('points') || c === 'pts') && !c.includes('kill') && !c.includes('match')) {
+                  stTotalColIdx = idx;
+                }
+              });
+            }
           }
 
           if (stTeamColIdx === -1) stTeamColIdx = 1;
-          if (stTotalColIdx === -1) stTotalColIdx = 8;
+          if (stTotalColIdx === -1) stTotalColIdx = (mode === 'Final Stage') ? 15 : 8;
 
           for (let row of standingsRows) {
             if (!row || row.length < 2) continue;
@@ -975,6 +988,16 @@
           "ftype": "textfield",
           "title": "Overall Standings CSV URL / Embed Code",
           "value": "https://docs.google.com/spreadsheets/d/1Lm61yqAgFFZRIOQxlsK_27s7B77vtOiYk9g_Uq-EZ_8/edit?gid=785807032#gid=785807032"
+        },
+        {
+          "field": "f3",
+          "ftype": "select",
+          "title": "Standings Mode",
+          "value": "Group Stage",
+          "items": [
+            {"value": "Group Stage", "text": "Group Stage"},
+            {"value": "Final Stage", "text": "Final Stage"}
+          ]
         }
       ]
     };
@@ -985,6 +1008,7 @@
   <div id="f0" style="display:none;"></div>
   <div id="f1" style="display:none;"></div>
   <div id="f2" style="display:none;"></div>
+  <div id="f3" style="display:none;"></div>
 
   <!-- RIGHT SIDE SCOREBOARD PANEL -->
   <div id="scorePanel">

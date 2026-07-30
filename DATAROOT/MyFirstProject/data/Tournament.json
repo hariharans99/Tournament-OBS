@@ -1,7 +1,7 @@
 {
   "warning": "Modifications done in the SPX will overwrite this file.",
   "copyright": "(c) 2020- SPX Graphics (https://spxgraphics.com)",
-  "updated": "2026-07-30T18:28:10.125Z",
+  "updated": "2026-07-30T18:36:19.193Z",
   "templates": [
     {
       "description": "Tournament Live Scoreboard (right panel)",
@@ -53,8 +53,14 @@
           "title": "Standings Mode",
           "value": "Group Stage",
           "items": [
-            {"value": "Group Stage", "text": "Group Stage"},
-            {"value": "Final Stage", "text": "Final Stage"}
+            {
+              "value": "Group Stage",
+              "text": "Group Stage"
+            },
+            {
+              "value": "Final Stage",
+              "text": "Final Stage"
+            }
           ]
         }
       ],
