@@ -301,8 +301,6 @@
         const pointsText = await fetchCsv(csvUrl);
         if (!pointsText) { console.warn('Points Table: no CSV'); return; }
 
-        const matchesText = matchesUrl ? await fetchCsv(matchesUrl) : '';
-
         const rows = parseCSV(pointsText);
 
         let headerRow = null;
@@ -312,7 +310,6 @@
         }
 
         let teamIdx = 1, killsIdx = -1, pointsIdx = -1;
-        let matchCols = [];
         if (headerRow) {
           headerRow.forEach((c, i) => {
             const l = c.toLowerCase().trim();
@@ -320,50 +317,56 @@
             else if (['kills','kill'].includes(l)) killsIdx = i;
             else if (l.includes('total') && !l.includes('kill') && !l.includes('match')) pointsIdx = i;
             else if (['points','pts'].includes(l) && pointsIdx < 0) pointsIdx = i;
-            else if (/^m\d+$/.test(l)) {
-              matchCols.push(i);
-            }
           });
         }
 
-        // Parse Matches Played from matchesText if available
+        // Fetch GIDs for Match 1 to Match 6 in parallel from the same spreadsheet
+        const sheetId = extractSheetId(csvUrl);
+        const matchGids = ['1030597977', '1897274994', '528606447', '1956996928', '20693017', '645808816'];
+        
+        const matchTexts = await Promise.all(
+          matchGids.map(gid => {
+            const url = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${gid}`;
+            return fetchCsv(url).catch(() => '');
+          })
+        );
+
+        // Map team name -> matches played count
         const matchesMap = {};
-        if (matchesText) {
-          const mRows = parseCSV(matchesText);
-          let mHeaderRow = null;
+
+        matchTexts.forEach(text => {
+          if (!text) return;
+          const mRows = parseCSV(text);
+          let mTeamIdx = -1, mPosIdx = -1;
+
+          // Find header row in this match sheet
           for (const r of mRows) {
             if (!r || r.length < 2) continue;
-            if (r.some(c => ['team','teams','team name'].includes(c.toLowerCase().trim()))) { mHeaderRow = r; break; }
+            if (r.some(c => ['team','teams','team name'].includes(c.toLowerCase().trim()))) {
+              r.forEach((c, i) => {
+                const l = c.toLowerCase().trim();
+                if (['team','teams','team name','teamname'].includes(l)) mTeamIdx = i;
+                else if (['position eliminated','position','placement','eliminated'].includes(l)) mPosIdx = i;
+              });
+              break;
+            }
           }
-          let mTeamIdx = 1;
-          let mMatchCols = [];
-          if (mHeaderRow) {
-            mHeaderRow.forEach((c, i) => {
-              const l = c.toLowerCase().trim();
-              if (['team','teams','team name','teamname'].includes(l)) mTeamIdx = i;
-              else if (/^m\d+$/.test(l)) {
-                mMatchCols.push(i);
-              }
-            });
-          }
-          if (mTeamIdx < 0) mTeamIdx = 0;
 
-          for (const r of mRows) {
-            if (!r || r.length < 2 || r === mHeaderRow) continue;
-            const name = (r[mTeamIdx] || '').trim();
-            if (!isValidTeam(name)) continue;
-            let count = 0;
-            mMatchCols.forEach(colIdx => {
-              if (colIdx < r.length) {
-                const val = r[colIdx];
-                if (val !== undefined && val.trim() !== '') {
-                  count++;
-                }
-              }
-            });
-            matchesMap[name.toLowerCase()] = count;
-          }
-        }
+          // Fallbacks if headers are not found
+          if (mTeamIdx < 0) mTeamIdx = 1; // Col B
+          if (mPosIdx < 0) mPosIdx = 6;  // Col G
+
+          mRows.forEach(r => {
+            if (!r || r.length <= Math.max(mTeamIdx, mPosIdx)) return;
+            const name = r[mTeamIdx].trim();
+            if (!isValidTeam(name)) return;
+            const posVal = r[mPosIdx].trim();
+            if (posVal !== '') {
+              const key = name.toLowerCase();
+              matchesMap[key] = (matchesMap[key] || 0) + 1;
+            }
+          });
+        });
 
         const teams = [];
         for (const row of rows) {
