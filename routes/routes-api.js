@@ -44,6 +44,180 @@ router.get('/fetchUrl', async (req, res) => {
 }); // fetchUrl
 
 
+// ─── Tournament Standings API (cached aggregation) ────────────────────────────
+// GET /api/tournament/standings?sheetId=...&mode=Group Stage
+// Returns pre-aggregated JSON: [{ name, points, kills, matches }]
+// Results are cached server-side for 5 seconds to avoid hammering Google Sheets.
+
+const _standingsCache = {};
+const STANDINGS_CACHE_TTL = 5000; // 5 seconds
+
+const SHEET_GIDS = {
+  totalPoints: '785807032',
+  group: ['1030597977', '1897274994', '528606447', '1956996928'],
+  finals: ['20693017', '645808816', '694167234']
+};
+
+function parseCsvText(text) {
+  return text.split(/\r\n|\n/).map(line => {
+    const result = []; let inQ = false; let cur = '';
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"') { inQ = !inQ; }
+      else if (ch === ',' && !inQ) { result.push(cur.trim()); cur = ''; }
+      else { cur += ch; }
+    }
+    result.push(cur.trim());
+    return result;
+  });
+}
+
+function isValidTeamName(name) {
+  if (!name || typeof name !== 'string') return false;
+  const t = name.replace(/^["']|["']$/g, '').trim();
+  if (t.length < 2 || t.length > 40) return false;
+  const l = t.toLowerCase();
+  if (['teams','team name','teamname','team','status','kills','alive','position','points','rank','#','total','total points','s.no','sno'].includes(l)) return false;
+  if (t.includes('{') || t.includes('=') || t.includes('<') || l.includes('function') || l.includes('null') || l.includes('return')) return false;
+  return true;
+}
+
+async function fetchSheetCsv(axios, sheetId, gid) {
+  const url = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${gid}`;
+  try {
+    const resp = await axios.get(url, { timeout: 8000, responseType: 'text' });
+    const text = typeof resp.data === 'string' ? resp.data : String(resp.data);
+    if (!text || text.startsWith('<!DOCTYPE') || text.startsWith('<html')) return '';
+    return text;
+  } catch (e) {
+    return '';
+  }
+}
+
+router.get('/tournament/standings', async (req, res) => {
+  try {
+    const sheetId = req.query.sheetId || '';
+    const mode = (req.query.mode || 'Group Stage').trim();
+
+    if (!sheetId) return res.status(400).json({ error: 'Missing sheetId' });
+
+    const cacheKey = `${sheetId}:${mode}`;
+    const now = Date.now();
+    if (_standingsCache[cacheKey] && (now - _standingsCache[cacheKey].ts) < STANDINGS_CACHE_TTL) {
+      return res.json(_standingsCache[cacheKey].data);
+    }
+
+    const axios = require('axios');
+    const matchGids = mode === 'Final Stage' ? SHEET_GIDS.finals : SHEET_GIDS.group;
+
+    // Fetch TotalPoints + all match sheets in parallel
+    const [pointsText, ...matchTexts] = await Promise.all([
+      fetchSheetCsv(axios, sheetId, SHEET_GIDS.totalPoints),
+      ...matchGids.map(gid => fetchSheetCsv(axios, sheetId, gid))
+    ]);
+
+    // ─── Parse TotalPoints sheet ───
+    const pointsRows = parseCsvText(pointsText);
+    let ptHeaderRow = null;
+    for (const row of pointsRows) {
+      if (!row || row.length < 2) continue;
+      if (row.some(c => ['team','teams','team name'].includes(c.toLowerCase().trim()))) { ptHeaderRow = row; break; }
+    }
+
+    let ptTeamIdx = -1, ptPointsIdx = -1;
+    if (ptHeaderRow) {
+      if (mode === 'Final Stage') {
+        ptHeaderRow.forEach((c, i) => {
+          const l = c.toLowerCase().trim();
+          if (ptTeamIdx === -1 && ['team','teams','team name','teamname'].includes(l)) ptTeamIdx = i;
+          if ((l.includes('total') || l.includes('points') || l === 'pts') && !l.includes('kill') && !l.includes('match')) {
+            ptPointsIdx = i; // Keep overwriting to get the last one (Column P for Finals)
+          }
+        });
+      } else {
+        ptHeaderRow.forEach((c, i) => {
+          const l = c.toLowerCase().trim();
+          if (ptTeamIdx === -1 && ['team','teams','team name','teamname'].includes(l)) ptTeamIdx = i;
+          else if (ptPointsIdx === -1 && (l.includes('total') || l.includes('points') || l === 'pts') && !l.includes('kill') && !l.includes('match')) ptPointsIdx = i;
+        });
+      }
+    }
+    if (ptTeamIdx === -1) ptTeamIdx = 1;
+    if (ptPointsIdx === -1) ptPointsIdx = mode === 'Final Stage' ? 15 : 7; // Col H=7, Col P=15
+
+    const pointsMap = {};
+    for (const row of pointsRows) {
+      if (!row || row.length < 2) continue;
+      const name = (row[ptTeamIdx] || '').trim();
+      if (!isValidTeamName(name)) continue;
+      const pts = parseInt(row[ptPointsIdx] || '0', 10) || 0;
+      pointsMap[name.toLowerCase()] = { name, points: pts };
+    }
+
+    // ─── Parse match sheets (kills + matches played) ───
+    const killsMap = {};
+    const matchesMap = {};
+
+    matchTexts.forEach(text => {
+      if (!text) return;
+      const mRows = parseCsvText(text);
+      let mTeamIdx = -1, mPosIdx = -1, mKillsIdx = -1;
+
+      for (const r of mRows) {
+        if (!r || r.length < 2) continue;
+        if (r.some(c => ['team','teams','team name'].includes(c.toLowerCase().trim()))) {
+          r.forEach((c, i) => {
+            const l = c.toLowerCase().trim();
+            if (['team','teams','team name','teamname'].includes(l)) mTeamIdx = i;
+            else if (['position eliminated','position','placement','eliminated'].includes(l)) mPosIdx = i;
+            else if (['kills','kill'].includes(l)) mKillsIdx = i;
+          });
+          break;
+        }
+      }
+
+      if (mTeamIdx < 0) mTeamIdx = 1;
+      if (mPosIdx < 0) mPosIdx = 6;
+      if (mKillsIdx < 0) mKillsIdx = 3;
+
+      mRows.forEach(r => {
+        if (!r || r.length <= Math.max(mTeamIdx, mPosIdx)) return;
+        const name = (r[mTeamIdx] || '').trim();
+        if (!isValidTeamName(name)) return;
+        const key = name.toLowerCase();
+
+        const posVal = (r[mPosIdx] || '').trim();
+        if (posVal !== '') matchesMap[key] = (matchesMap[key] || 0) + 1;
+
+        if (mKillsIdx < r.length) {
+          const k = parseInt(r[mKillsIdx] || '0', 10) || 0;
+          killsMap[key] = (killsMap[key] || 0) + k;
+        }
+      });
+    });
+
+    // ─── Merge into final result ───
+    const teams = Object.values(pointsMap).map(t => ({
+      name: t.name,
+      points: t.points,
+      kills: killsMap[t.name.toLowerCase()] || 0,
+      matches: matchesMap[t.name.toLowerCase()] || 0
+    })).filter(t => isValidTeamName(t.name));
+
+    teams.sort((a, b) => b.points !== a.points ? b.points - a.points : b.kills - a.kills);
+    teams.forEach((t, i) => { t.rank = i + 1; });
+
+    _standingsCache[cacheKey] = { ts: now, data: teams };
+    res.json(teams);
+
+  } catch (err) {
+    logger.error('Error in /api/tournament/standings: ' + err);
+    res.status(500).json({ error: err.message });
+  }
+}); // tournament/standings
+// ─────────────────────────────────────────────────────────────────────────────
+
+
 router.get('/openFileFolder/', async (req, res) => {
   // Added in 1.3.1. And fixed in 1.3.2... 
   // Added optional parameter forceFolder to open a different folder than templates.

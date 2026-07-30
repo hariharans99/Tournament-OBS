@@ -1,7 +1,7 @@
 {
   "warning": "Modifications done in the SPX will overwrite this file.",
   "copyright": "(c) 2020- SPX Graphics (https://spxgraphics.com)",
-  "updated": "2026-07-30T18:36:19.193Z",
+  "updated": "2026-07-30T18:42:41.093Z",
   "templates": [
     {
       "description": "Tournament Live Scoreboard (right panel)",
@@ -20,7 +20,7 @@
           "value": "https://docs.google.com/spreadsheets/d/1Lm61yqAgEFZRIOQxlsK_27s7B77vtOiYk9g_Uq-EZ_8/edit?userstoinvite=gninikhil6%40gmail.com&sharingaction=manageaccess&role=writer&gid=20693017#gid=20693017"
         }
       ],
-      "onair": "true",
+      "onair": "false",
       "imported": "1773083291300",
       "relpath": "/tournament/LIVE_SCOREBOARD.html",
       "itemID": "1773083297001"

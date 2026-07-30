@@ -543,11 +543,8 @@
 
     async function fetchAndRender(isFirstLoad) {
       try {
-        // Fetch both CSVs in parallel
-        const [liveText, standingsText] = await Promise.all([
-          fetchCsv(liveCsvUrl),
-          fetchCsv(standingsCsvUrl)
-        ]);
+        // Fetch live match CSV
+        const liveText = await fetchCsv(liveCsvUrl);
 
         if (!liveText) {
           console.warn('Could not fetch Live Match CSV');
@@ -555,7 +552,6 @@
         }
 
         const liveRows = parseCSV(liveText);
-        const standingsRows = standingsText ? parseCSV(standingsText) : [];
 
         // ─── 1. Parse Live Match Sheet ───
         let liveHeaderRow = null;
@@ -611,68 +607,29 @@
           liveTeams.push({ name: nameCandidate, alive: aliveVal, kills: killsVal, points: pointsVal });
         }
 
-        // ─── 2. Parse Standings Sheet (TotalPoints) ───
+        // ─── 2. Fetch Standings via cached API (1 request instead of parsing CSV) ───
         const standingsMap = {};
-        if (standingsRows.length > 0) {
-          let stHeaderRow = null;
-          for (let row of standingsRows) {
-            if (!row || row.length < 2) continue;
-            let hasTeam = row.some(cell => {
-              let c = cell.toLowerCase().trim();
-              return c === 'team' || c === 'teams' || c === 'team name';
-            });
-            if (hasTeam) { stHeaderRow = row; break; }
-          }
-
-          let stTeamColIdx = -1;
-          let stTotalColIdx = -1;
-          let mode = e('f3') ? e('f3').innerText.trim() : 'Group Stage';
-
-          if (stHeaderRow) {
-            if (mode === 'Final Stage') {
-              stHeaderRow.forEach((cell, idx) => {
-                let c = cell.toLowerCase().trim();
-                if (stTeamColIdx === -1 && (c === 'team' || c === 'teams' || c === 'team name' || c === 'teamname')) {
-                  stTeamColIdx = idx;
-                }
-                if ((c.includes('total') || c.includes('points') || c === 'pts') && !c.includes('kill') && !c.includes('match')) {
-                  stTotalColIdx = idx; // Keep overwriting to get the last one (Column P)
-                }
-              });
-            } else {
-              stHeaderRow.forEach((cell, idx) => {
-                let c = cell.toLowerCase().trim();
-                if (stTeamColIdx === -1 && (c === 'team' || c === 'teams' || c === 'team name' || c === 'teamname')) {
-                  stTeamColIdx = idx;
-                } else if (stTotalColIdx === -1 && (c.includes('total') || c.includes('points') || c === 'pts') && !c.includes('kill') && !c.includes('match')) {
-                  stTotalColIdx = idx;
-                }
-              });
+        try {
+          const sheetId = extractSheetId(liveCsvUrl) || extractSheetId(standingsCsvUrl);
+          const stMode = e('f3') ? e('f3').innerText.trim() : 'Group Stage';
+          if (sheetId) {
+            const apiUrl = `/api/tournament/standings?sheetId=${encodeURIComponent(sheetId)}&mode=${encodeURIComponent(stMode)}`;
+            const stRes = await fetch(apiUrl);
+            if (stRes.ok) {
+              const stTeams = await stRes.json();
+              if (Array.isArray(stTeams)) {
+                stTeams.forEach(t => { standingsMap[t.name.toLowerCase()] = t.points; });
+              }
             }
           }
-
-          if (stTeamColIdx === -1) stTeamColIdx = 1;
-          if (stTotalColIdx === -1) stTotalColIdx = (mode === 'Final Stage') ? 15 : 8;
-
-          for (let row of standingsRows) {
-            if (!row || row.length < 2) continue;
-            let nameCandidate = (row[stTeamColIdx] || '').trim();
-            if (!isValidTeamName(nameCandidate)) continue;
-
-            let totalVal = 0;
-            if (row[stTotalColIdx] !== undefined && row[stTotalColIdx] !== '') {
-              totalVal = parseInt(row[stTotalColIdx].trim(), 10);
-              if (isNaN(totalVal)) totalVal = 0;
-            }
-
-            standingsMap[nameCandidate.toLowerCase()] = totalVal;
-          }
+        } catch (stErr) {
+          console.warn('Standings API unavailable, using match points as fallback:', stErr);
         }
 
         // ─── 3. Merge Standings Points into Live Teams ───
         const mergedTeams = liveTeams.map(t => {
-          const overallPts = standingsMap[t.name.toLowerCase()] !== undefined 
-            ? standingsMap[t.name.toLowerCase()] 
+          const overallPts = standingsMap[t.name.toLowerCase()] !== undefined
+            ? standingsMap[t.name.toLowerCase()]
             : t.points; // Fallback to match points if not in overall
           return {
             ...t,

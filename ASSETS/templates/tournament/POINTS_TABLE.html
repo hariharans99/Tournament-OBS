@@ -298,127 +298,18 @@
 
     async function fetchAndRender(csvUrl, mode, isFirst) {
       try {
-        const pointsText = await fetchCsv(csvUrl);
-        if (!pointsText) { console.warn('Points Table: no CSV'); return; }
-
-        const rows = parseCSV(pointsText);
-
-        let headerRow = null;
-        for (const row of rows) {
-          if (!row || row.length < 2) continue;
-          if (row.some(c => ['team','teams','team name'].includes(c.toLowerCase().trim()))) { headerRow = row; break; }
-        }
-
-        let teamIdx = -1, pointsIdx = -1;
-        if (headerRow) {
-          if (mode === 'Final Stage') {
-            // In Final Stage, Team name is Column B, and Total Points is the LAST Total Points column (Column P)
-            headerRow.forEach((c, i) => {
-              const l = c.toLowerCase().trim();
-              if (teamIdx === -1 && ['team','teams','team name','teamname'].includes(l)) teamIdx = i;
-              if ((l.includes('total') || l.includes('points') || l === 'pts') && !l.includes('kill') && !l.includes('match')) {
-                pointsIdx = i; // Will keep overwriting to get the last one (Column P)
-              }
-            });
-          } else {
-            // Group Stage (Column B & Column H)
-            headerRow.forEach((c, i) => {
-              const l = c.toLowerCase().trim();
-              if (teamIdx === -1 && ['team','teams','team name','teamname'].includes(l)) teamIdx = i;
-              else if (pointsIdx === -1 && (l.includes('total') || l.includes('points') || l === 'pts') && !l.includes('kill') && !l.includes('match')) pointsIdx = i;
-            });
-          }
-        }
-        if (teamIdx === -1) teamIdx = 1;
-        if (pointsIdx === -1) pointsIdx = (mode === 'Final Stage') ? 15 : 8;
-
-        // Fetch match GIDs based on mode
         const sheetId = extractSheetId(csvUrl);
-        const matchGids = (mode === 'Final Stage') 
-          ? ['20693017', '645808816', '694167234']  // Final 1, Final 2, Final 3
-          : ['1030597977', '1897274994', '528606447', '1956996928']; // GroupA 1-2, GroupB 1-2
-        
-        const matchTexts = await Promise.all(
-          matchGids.map(gid => {
-            const url = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${gid}`;
-            return fetchCsv(url).catch(() => '');
-          })
-        );
+        if (!sheetId) { console.warn('Points Table: no sheet ID found in URL'); return; }
 
-        // Map team name -> matches played count
-        const matchesMap = {};
-        // Map team name -> total kills count
-        const killsMap = {};
+        // Single API call — server fetches, caches, aggregates all sheets
+        const apiUrl = `/api/tournament/standings?sheetId=${encodeURIComponent(sheetId)}&mode=${encodeURIComponent(mode)}`;
+        const res = await fetch(apiUrl);
+        if (!res.ok) { console.warn('Points Table: API error', res.status); return; }
+        const teams = await res.json();
 
-        matchTexts.forEach(text => {
-          if (!text) return;
-          const mRows = parseCSV(text);
-          let mTeamIdx = -1, mPosIdx = -1, mKillsIdx = -1;
+        if (!Array.isArray(teams) || teams.length === 0) return;
 
-          // Find header row in this match sheet
-          for (const r of mRows) {
-            if (!r || r.length < 2) continue;
-            if (r.some(c => ['team','teams','team name'].includes(c.toLowerCase().trim()))) {
-              r.forEach((c, i) => {
-                const l = c.toLowerCase().trim();
-                if (['team','teams','team name','teamname'].includes(l)) mTeamIdx = i;
-                else if (['position eliminated','position','placement','eliminated'].includes(l)) mPosIdx = i;
-                else if (['kills','kill'].includes(l)) mKillsIdx = i;
-              });
-              break;
-            }
-          }
-
-          // Fallbacks if headers are not found
-          if (mTeamIdx < 0) mTeamIdx = 1; // Col B
-          if (mPosIdx < 0) mPosIdx = 6;  // Col G
-          if (mKillsIdx < 0) mKillsIdx = 3; // Col D
-
-          mRows.forEach(r => {
-            if (!r || r.length <= Math.max(mTeamIdx, mPosIdx)) return;
-            const name = r[mTeamIdx].trim();
-            if (!isValidTeam(name)) return;
-            
-            // Check matches played
-            const posVal = r[mPosIdx].trim();
-            if (posVal !== '') {
-              const key = name.toLowerCase();
-              matchesMap[key] = (matchesMap[key] || 0) + 1;
-            }
-
-            // Check and sum kills
-            if (mKillsIdx < r.length) {
-              const killsVal = parseInt(r[mKillsIdx].trim() || '0', 10) || 0;
-              const key = name.toLowerCase();
-              killsMap[key] = (killsMap[key] || 0) + killsVal;
-            }
-          });
-        });
-
-        const teams = [];
-        for (const row of rows) {
-          if (!row || row.length < 2) continue;
-          const name = (row[teamIdx] || '').trim();
-          if (!isValidTeam(name)) continue;
-
-          // Map kills from match sheets
-          const kills = killsMap[name.toLowerCase()] !== undefined ? killsMap[name.toLowerCase()] : 0;
-          
-          // Total points comes from TotalPoints sheet
-          const points = pointsIdx >= 0 ? (parseInt(row[pointsIdx] || '0', 10) || 0) : 0;
-
-          // Resolve Matches Played
-          const matches = matchesMap[name.toLowerCase()] !== undefined ? matchesMap[name.toLowerCase()] : 0;
-
-          teams.push({ name, kills, points, matches });
-        }
-
-        if (teams.length === 0) return;
-
-        teams.sort((a, b) => b.points !== a.points ? b.points - a.points : b.kills - a.kills);
-        teams.forEach((t, i) => t.rank = i + 1);
         allTeams = teams;
-
         renderCurrentPage(isFirst);
       } catch(err) { console.error('Points Table:', err); }
     }
