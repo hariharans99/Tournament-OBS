@@ -30,17 +30,17 @@
       background-size: 100% 100%;
       background-position: center;
       pointer-events: none;
-      display: block; /* No longer flex */
+      display: block;
       overflow: hidden;
     }
 
     /* ── Inner content container aligned over the panel graphic ── */
     .panel-content {
       position: absolute;
-      top: 13.5vh;
-      left: 80.2vw;
-      width: 18.4vw;
-      height: 80vh;
+      top: 6.94vh;
+      left: 81.44vw;
+      width: 16.60vw;
+      height: 85.0vh;
       display: flex;
       flex-direction: column;
       overflow: visible;
@@ -50,7 +50,8 @@
     #panelHeader {
       background: transparent;
       border-bottom: none;
-      padding: 0.8vh 0;
+      padding: 0;
+      height: 6.94vh;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -61,10 +62,9 @@
       font-family: 'Orbitron', sans-serif;
       font-size: 1.0vw;
       font-weight: 900;
-      color: #ffa040;
+      color: transparent; /* Text is baked into background graphic */
       letter-spacing: 2px;
       text-transform: uppercase;
-      text-shadow: 0 0 10px rgba(255, 140, 0, 0.6);
     }
 
     #liveIndicator {
@@ -73,7 +73,7 @@
       gap: 6px;
       font-size: 0.7vw;
       font-weight: 700;
-      color: #ffa040;
+      color: transparent; /* Text is baked into background graphic */
       letter-spacing: 1px;
     }
 
@@ -84,6 +84,7 @@
       border-radius: 50%;
       box-shadow: 0 0 8px #ff8800;
       animation: pulse 1.5s infinite;
+      margin-left: 9.3vw; /* Align over the orange dot on graphic */
     }
 
     @keyframes pulse {
@@ -95,10 +96,12 @@
     #colHeaders {
       display: grid;
       grid-template-columns: 1fr 2.5vw 4.5vw;
-      padding: 0.8vh 0;
+      padding: 0;
+      height: 4.51vh;
       border-bottom: none;
       background: transparent;
       flex-shrink: 0;
+      visibility: hidden; /* Text is baked into background graphic */
     }
 
     .col-hdr {
@@ -116,7 +119,8 @@
     #teamList {
       overflow-y: auto;
       flex-grow: 1;
-      padding: 2px 0;
+      margin-top: 5.56vh; /* 32px vertical offset to align with first row of graphic */
+      padding: 0;
       display: flex;
       flex-direction: column;
     }
@@ -128,24 +132,24 @@
     .team-row {
       display: grid;
       grid-template-columns: 1fr 2.5vw 4.5vw;
-      padding: 0.6vh 0;
+      height: 4.69vh; /* Exact 27px height per row to align with graphic grid lines */
+      padding: 0;
       align-items: center;
-      border-bottom: 1px solid rgba(255, 100, 0, 0.08);
+      border-bottom: none;
       transition: background 0.4s ease;
       position: relative;
     }
 
     .team-row:nth-child(odd) {
-      background: rgba(255, 255, 255, 0.02);
+      background: transparent;
     }
 
     .team-row:nth-child(even) {
-      background: rgba(0, 0, 0, 0.25);
+      background: transparent;
     }
 
     .team-row.eliminated {
-      background: rgba(120, 0, 0, 0.3) !important;
-      border-bottom-color: rgba(200, 0, 0, 0.15);
+      background: rgba(120, 0, 0, 0.22) !important;
     }
 
     .team-name-cell {
@@ -156,6 +160,7 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      padding-left: 0.2vw;
     }
 
     .team-row.eliminated .team-name-cell {
@@ -169,8 +174,8 @@
       font-weight: 700;
       text-align: center;
       font-family: 'Orbitron', sans-serif;
-      border-left: 1px solid rgba(200, 90, 0, 0.35);
-      padding: 0 2px;
+      border-left: none;
+      padding: 0;
     }
 
     .kills-cell {
@@ -199,7 +204,8 @@
     /* ── Footer Stats ──────────────────────────────────────────────── */
     #panelFooter {
       border-top: none;
-      padding: 1.2vh 0 0 0;
+      padding: 0;
+      height: 5.2vh;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -212,6 +218,7 @@
       color: #ffa040;
       font-weight: 700;
       letter-spacing: 1px;
+      margin-left: 5.1vw; /* Position number right next to printed '✓ ALIVE' text */
     }
 
     #elimCount {
@@ -219,6 +226,7 @@
       color: #ffa040;
       font-weight: 700;
       letter-spacing: 1px;
+      margin-right: 0.2vw; /* Position number right next to printed 'X ELIMINATED' text */
     }
 
     /* ── Elimination Centre Banner Popup ───────────────────────────── */
@@ -730,8 +738,8 @@
     function updateFooter(teams) {
       const alive = teams.filter(t => t.alive > 0).length;
       const elim  = teams.filter(t => t.alive === 0).length;
-      e('aliveCount').innerText = `✓ ALIVE: ${alive}`;
-      e('elimCount').innerText  = `X ELIMINATED: ${elim}`;
+      e('aliveCount').innerText = alive;
+      e('elimCount').innerText  = elim;
     }
 
     function showPanel() {
@@ -815,8 +823,8 @@
       <div id="teamList"></div>
 
       <div id="panelFooter">
-        <div id="aliveCount">✓ ALIVE: —</div>
-        <div id="elimCount">X ELIMINATED: —</div>
+        <div id="aliveCount">—</div>
+        <div id="elimCount">—</div>
       </div>
     </div>
   </div>
