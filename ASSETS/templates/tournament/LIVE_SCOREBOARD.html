@@ -20,81 +20,38 @@
     /* ── Main Scoreboard Panel (Right Side) ────────────────────────── */
     #scorePanel {
       position: absolute;
-      top: 50%;
-      right: 18px;
-      transform: translateY(-50%) translateX(120%);
+      top: 2vh;
+      right: 0.5vw;
+      transform: translateX(120%);
       opacity: 0;
-      width: 320px;
-      max-height: 90vh;
-      background: linear-gradient(180deg, #0d0d0d 0%, #111111 100%);
-      border: 3px solid #c85a00;
-      border-radius: 10px;
-      box-shadow:
-        0 0 0 1px #ff7b00,
-        0 0 18px rgba(255, 120, 0, 0.55),
-        0 0 50px rgba(255, 80, 0, 0.25),
-        inset 0 0 15px rgba(200, 90, 0, 0.08);
+      width: 50.5vw;
+      height: 96vh;
+      background: url('/media/scoreboard_bg.png') no-repeat;
+      background-size: 198.06% 100%;
+      background-position: right top;
       display: flex;
       flex-direction: column;
       overflow: visible;
-    }
-
-    /* ── Left side chevron decorations ───────────────────────────── */
-    #scorePanel::before {
-      content: '';
-      position: absolute;
-      left: -11px;
-      top: 80px;
-      bottom: 80px;
-      width: 8px;
-      background:
-        repeating-linear-gradient(
-          to bottom,
-          transparent 0px,
-          transparent 8px,
-          #ff6a00 8px,
-          #ff6a00 14px,
-          transparent 14px,
-          transparent 22px
-        );
-      border-radius: 2px;
-    }
-
-    #scorePanel::after {
-      content: '';
-      position: absolute;
-      right: -11px;
-      top: 80px;
-      bottom: 80px;
-      width: 8px;
-      background:
-        repeating-linear-gradient(
-          to bottom,
-          transparent 0px,
-          transparent 8px,
-          #ff6a00 8px,
-          #ff6a00 14px,
-          transparent 14px,
-          transparent 22px
-        );
-      border-radius: 2px;
+      padding-top: 12.5vh; /* Push below peaking characters */
+      padding-left: 2.2vw;
+      padding-right: 2.2vw;
+      padding-bottom: 2.5vh;
     }
 
     /* ── Header ────────────────────────────────────────────────────── */
     #panelHeader {
-      background: linear-gradient(90deg, #1a0800 0%, #220f00 100%);
-      border-bottom: 2px solid #c85a00;
-      padding: 10px 14px;
+      background: transparent;
+      border-bottom: none;
+      padding: 0.8vh 0.5vw;
       display: flex;
       align-items: center;
       justify-content: space-between;
       flex-shrink: 0;
-      border-radius: 7px 7px 0 0;
     }
 
     #panelTitle {
       font-family: 'Orbitron', sans-serif;
-      font-size: 13px;
+      font-size: 1.35vw;
       font-weight: 900;
       color: #ffa040;
       letter-spacing: 2px;
@@ -106,15 +63,15 @@
       display: flex;
       align-items: center;
       gap: 6px;
-      font-size: 10px;
+      font-size: 0.9vw;
       font-weight: 700;
       color: #ffa040;
       letter-spacing: 1px;
     }
 
     #liveDot {
-      width: 8px;
-      height: 8px;
+      width: 0.6vw;
+      height: 0.6vw;
       background: #ff8800;
       border-radius: 50%;
       box-shadow: 0 0 8px #ff8800;
@@ -129,16 +86,16 @@
     /* ── Column Headers (Team | Kills | Alive) ──────────────── */
     #colHeaders {
       display: grid;
-      grid-template-columns: 1fr 60px 80px;
-      padding: 7px 12px;
-      border-bottom: 1px solid rgba(200, 90, 0, 0.4);
-      background: rgba(255, 100, 0, 0.10);
+      grid-template-columns: 1fr 6vw 10vw;
+      padding: 0.8vh 0.5vw;
+      border-bottom: none;
+      background: transparent;
       flex-shrink: 0;
     }
 
     .col-hdr {
       font-family: 'Orbitron', sans-serif;
-      font-size: 10px;
+      font-size: 1.1vw;
       font-weight: 700;
       color: #ffa040;
       letter-spacing: 1.5px;
@@ -162,8 +119,8 @@
 
     .team-row {
       display: grid;
-      grid-template-columns: 1fr 60px 80px;
-      padding: 6px 12px;
+      grid-template-columns: 1fr 6vw 10vw;
+      padding: 0.6vh 0.5vw;
       align-items: center;
       border-bottom: 1px solid rgba(255, 100, 0, 0.08);
       transition: background 0.4s ease;
@@ -184,7 +141,7 @@
     }
 
     .team-name-cell {
-      font-size: 12px;
+      font-size: 1.25vw;
       font-weight: 700;
       color: #eeeeee;
       letter-spacing: 0.4px;
@@ -200,7 +157,7 @@
     }
 
     .kills-cell, .points-cell, .alive-cell {
-      font-size: 12px;
+      font-size: 1.2vw;
       font-weight: 700;
       text-align: center;
       font-family: 'Orbitron', sans-serif;
@@ -221,37 +178,36 @@
     .alive-cell {
       color: #ffffff;
       letter-spacing: 1px;
-      font-size: 10px;
+      font-size: 1.05vw;
     }
 
     .alive-cell.zero {
       color: #ff1744;
-      font-size: 10px;
+      font-size: 1.05vw;
       letter-spacing: 1px;
       text-shadow: 0 0 8px rgba(255, 23, 68, 0.6);
     }
 
     /* ── Footer Stats ──────────────────────────────────────────────── */
     #panelFooter {
-      border-top: 2px solid #c85a00;
-      padding: 8px 14px;
+      border-top: none;
+      padding: 1.2vh 0.5vw 0 0.5vw;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: linear-gradient(90deg, #1a0800 0%, #220f00 100%);
+      background: transparent;
       flex-shrink: 0;
-      border-radius: 0 0 7px 7px;
     }
 
     #aliveCount {
-      font-size: 12px;
+      font-size: 1.15vw;
       color: #ffa040;
       font-weight: 700;
       letter-spacing: 1px;
     }
 
     #elimCount {
-      font-size: 12px;
+      font-size: 1.15vw;
       color: #ffa040;
       font-weight: 700;
       letter-spacing: 1px;
@@ -774,7 +730,6 @@
       anime({
         targets: '#scorePanel',
         translateX: ['120%', '0%'],
-        translateY: '-50%',
         opacity: [0, 1],
         duration: 700,
         easing: 'easeOutCubic'
