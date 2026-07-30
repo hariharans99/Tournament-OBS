@@ -1,7 +1,7 @@
 {
   "warning": "Modifications done in the SPX will overwrite this file.",
   "copyright": "(c) 2020- SPX Graphics (https://spxgraphics.com)",
-  "updated": "2026-07-30T16:20:13.574Z",
+  "updated": "2026-07-30T16:24:49.221Z",
   "templates": [
     {
       "description": "Tournament Live Scoreboard (right panel)",
@@ -42,7 +42,7 @@
           "value": "https://docs.google.com/spreadsheets/d/1Lm61yqAgEFZRIOQxlsK_27s7B77vtOiYk9g_Uq-EZ_8/edit?pli=1&gid=785807032#gid=785807032"
         }
       ],
-      "onair": "true",
+      "onair": "false",
       "imported": "1773083291300",
       "relpath": "/tournament/POINTS_TABLE.html",
       "itemID": "1773083297002"

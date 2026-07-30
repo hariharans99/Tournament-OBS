@@ -30,24 +30,17 @@
     /* Positioned over the lower brownish area of the OBS layout */
     #tableWrapper {
       position: absolute;
-      top: 496px;
+      top: 565px;
       left: 25px;
       width: 1870px;
-      height: 530px;
+      height: 265px; /* 5 rows * 53px = 265px */
       display: flex;
       flex-direction: column;
     }
 
-    /* ── Dual column header (absolutely positioned above the box) ── */
+    /* ── Dual column header (hidden because it is baked into background image) ── */
     #tableHeader {
-      position: absolute;
-      top: 472px;
-      left: 25px;
-      width: 1870px;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0 10px;
-      z-index: 10;
+      display: none;
     }
 
     .hdr-half {
@@ -162,9 +155,14 @@
 
   <script>
     const REFRESH_MS = 5000;
+    const PAGE_DURATION = 10000; // 10 seconds per page
     let refreshTimer = null;
+    let pageTimer = null;
     let isRunning = false;
     let isInitialized = false;
+
+    let allTeams = [];
+    let currentIndex = 0;
 
     function e(id) { return document.getElementById(id); }
 
@@ -248,10 +246,12 @@
       const csvUrl = e('f0') ? e('f0').innerText.trim() : '';
       if (isRunning) { await fetchAndRender(csvUrl, false); return; }
       isRunning = true;
+      currentIndex = 0;
       await fetchAndRender(csvUrl, true);
       isInitialized = true;
       showPanel();
       scheduleRefresh(csvUrl);
+      startPageRotation();
     }
 
     function scheduleRefresh(url) {
@@ -261,6 +261,22 @@
         await fetchAndRender(url, false);
         scheduleRefresh(url);
       }, REFRESH_MS);
+    }
+
+    function startPageRotation() {
+      clearInterval(pageTimer);
+      pageTimer = setInterval(() => {
+        showNextPage();
+      }, PAGE_DURATION);
+    }
+
+    function showNextPage() {
+      if (allTeams.length <= 10) return; // No pagination if 10 or fewer teams
+      currentIndex += 10;
+      if (currentIndex >= allTeams.length) {
+        currentIndex = 0;
+      }
+      renderCurrentPage(true);
     }
 
     async function fetchAndRender(csvUrl, isFirst) {
@@ -300,19 +316,22 @@
         if (teams.length === 0) return;
 
         teams.sort((a, b) => b.points !== a.points ? b.points - a.points : b.kills - a.kills);
-        const top20 = teams.slice(0, 20);
-        top20.forEach((t, i) => t.rank = i + 1);
+        teams.forEach((t, i) => t.rank = i + 1);
+        allTeams = teams;
 
-        renderTable(top20, isFirst);
+        renderCurrentPage(isFirst);
       } catch(err) { console.error('Points Table:', err); }
     }
 
-    function renderTable(teams, animate) {
+    function renderCurrentPage(animate) {
       e('colLeft').innerHTML  = '';
       e('colRight').innerHTML = '';
 
-      teams.slice(0, 10).forEach(t  => e('colLeft').appendChild(buildRow(t)));
-      teams.slice(10, 20).forEach(t => e('colRight').appendChild(buildRow(t)));
+      const leftTeams = allTeams.slice(currentIndex, currentIndex + 5);
+      const rightTeams = allTeams.slice(currentIndex + 5, currentIndex + 10);
+
+      leftTeams.forEach(t  => e('colLeft').appendChild(buildRow(t)));
+      rightTeams.forEach(t => e('colRight').appendChild(buildRow(t)));
 
       if (animate) {
         // Staggered run-down: rows slide in from left sequentially
@@ -352,6 +371,7 @@
 
     function hidePanel() {
       clearTimeout(refreshTimer);
+      clearInterval(pageTimer);
       isRunning = false; isInitialized = false;
       anime({ targets: '#pointsPanel', opacity: [1, 0], duration: 400, easing: 'easeInCubic' });
     }
