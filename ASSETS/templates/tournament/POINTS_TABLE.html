@@ -330,43 +330,40 @@
         const matchesMap = {};
         if (matchesText) {
           const mRows = parseCSV(matchesText);
-          let mTeamIdx = -1, mValIdx = -1;
+          let mHeaderRow = null;
           for (const r of mRows) {
             if (!r || r.length < 2) continue;
-            if (r.some(c => ['team','teams','team name'].includes(c.toLowerCase().trim()))) {
-              r.forEach((c, i) => {
-                const l = c.toLowerCase().trim();
-                if (['team','teams','team name','teamname'].includes(l)) mTeamIdx = i;
-                else if (['matches','matches played','played','match'].includes(l)) mValIdx = i;
-              });
-              break;
-            }
+            if (r.some(c => ['team','teams','team name'].includes(c.toLowerCase().trim()))) { mHeaderRow = r; break; }
+          }
+          let mTeamIdx = 1;
+          let mMatchCols = [];
+          if (mHeaderRow) {
+            mHeaderRow.forEach((c, i) => {
+              const l = c.toLowerCase().trim();
+              if (['team','teams','team name','teamname'].includes(l)) mTeamIdx = i;
+              else if (/^m\d+$/.test(l)) {
+                mMatchCols.push(i);
+              }
+            });
           }
           if (mTeamIdx < 0) mTeamIdx = 0;
-          if (mValIdx < 0) mValIdx = 1;
 
           for (const r of mRows) {
-            if (!r || r.length <= Math.max(mTeamIdx, mValIdx)) continue;
-            const name = r[mTeamIdx].trim();
+            if (!r || r.length < 2 || r === mHeaderRow) continue;
+            const name = (r[mTeamIdx] || '').trim();
             if (!isValidTeam(name)) continue;
-            const val = parseInt(r[mValIdx].trim() || '0', 10) || 0;
-            matchesMap[name.toLowerCase()] = val;
+            let count = 0;
+            mMatchCols.forEach(colIdx => {
+              if (colIdx < r.length) {
+                const val = r[colIdx];
+                if (val !== undefined && val.trim() !== '') {
+                  count++;
+                }
+              }
+            });
+            matchesMap[name.toLowerCase()] = count;
           }
         }
-
-        // Find which match columns actually have scores > 0 for any team
-        const playedCols = new Set();
-        matchCols.forEach(colIdx => {
-          let colSum = 0;
-          for (const row of rows) {
-            if (!row || row.length <= colIdx) continue;
-            const val = parseInt(row[colIdx].trim() || '0', 10) || 0;
-            colSum += val;
-          }
-          if (colSum > 0) {
-            playedCols.add(colIdx);
-          }
-        });
 
         const teams = [];
         for (const row of rows) {
@@ -377,21 +374,7 @@
           const points = pointsIdx >= 0 ? (parseInt(row[pointsIdx] || '0', 10) || 0) : 0;
 
           // Resolve Matches Played
-          let matches = 0;
-          if (matchesMap[name.toLowerCase()] !== undefined) {
-            matches = matchesMap[name.toLowerCase()];
-          } else {
-            // Fallback: count columns that actually had scores > 0 across any team
-            // AND are not blank/empty for this particular team
-            matchCols.forEach(idx => {
-              if (playedCols.has(idx)) {
-                const cellVal = row[idx];
-                if (cellVal !== undefined && cellVal.trim() !== '') {
-                  matches++;
-                }
-              }
-            });
-          }
+          const matches = matchesMap[name.toLowerCase()] !== undefined ? matchesMap[name.toLowerCase()] : 0;
 
           teams.push({ name, kills, points, matches });
         }
