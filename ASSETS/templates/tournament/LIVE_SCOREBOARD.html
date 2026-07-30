@@ -117,22 +117,21 @@
 
     /* ── Team Rows Container ───────────────────────────────────────── */
     #teamList {
-      overflow-y: auto;
+      overflow: hidden; /* Hide scrollbar since rows stretch/shrink to fit */
       flex-grow: 1;
       margin-top: 5.56vh; /* 32px vertical offset to align with first row of graphic */
       padding: 0;
       display: flex;
       flex-direction: column;
+      justify-content: space-between;
     }
-
-    #teamList::-webkit-scrollbar { width: 3px; }
-    #teamList::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); }
-    #teamList::-webkit-scrollbar-thumb { background: #c85a00; border-radius: 2px; }
 
     .team-row {
       display: grid;
       grid-template-columns: 5.66vw 3.42vw 7.52vw;
-      height: 4.69vh; /* Exact 27px height per row to align with graphic grid lines */
+      flex: 1;
+      max-height: 4.69vh; /* Exact 27px height per row maximum */
+      min-height: 2.5vh; /* Shrink to fit many teams without congestion */
       padding: 0;
       align-items: center;
       border-bottom: none;
@@ -203,7 +202,7 @@
 
     #panelFooter {
       position: absolute;
-      bottom: 4.8vh; /* Center vertically inside the background graphic's footer area */
+      bottom: 3.8vh; /* Shifted down to align exactly on the last line next to the labels */
       left: 81.44vw;
       width: 16.60vw;
       height: 5.2vh;
