@@ -98,10 +98,11 @@
       grid-template-columns: 5.66vw 3.42vw 7.52vw;
       padding: 0;
       height: 4.51vh;
+      align-items: center; /* Center header text vertically */
       border-bottom: none;
       background: transparent;
       flex-shrink: 0;
-      visibility: hidden; /* Text is baked into background graphic */
+      visibility: visible;
     }
 
     .col-hdr {
@@ -410,9 +411,27 @@
     }
     function stop() { hidePanel(); }
 
+    let currentMode = 'Live Match'; // Track scoreboard mode globally
+
     async function runTemplateUpdate() {
-      let fieldVal = e('f0') ? e('f0').innerText.trim() : '';
+      // 1. Read mode from hidden div #f1
+      let modeVal = e('f1') ? e('f1').innerText.trim() : 'Live Match';
+      currentMode = modeVal || 'Live Match';
+
+      // 2. Read rawCsvUrl from correct field based on mode
+      let fieldVal = '';
+      if (currentMode === 'Overall Standings') {
+        fieldVal = e('f2') ? e('f2').innerText.trim() : '';
+      } else {
+        fieldVal = e('f0') ? e('f0').innerText.trim() : '';
+      }
       rawCsvUrl = fieldVal || DEFAULT_CSV_URL;
+
+      // 3. Update the third column header in HTML
+      const thirdColHdr = document.querySelector('#colHeaders .col-hdr:nth-child(3)');
+      if (thirdColHdr) {
+        thirdColHdr.innerText = (currentMode === 'Overall Standings') ? 'PTS' : 'ALIVE';
+      }
 
       if (isRunning) {
         await fetchAndRender(false);
@@ -489,38 +508,77 @@
         }
 
         const rows  = parseCSV(text);
+        if (rows.length === 0) return;
+
+        // Find column indices from the first row that looks like a header
+        let teamColIdx = 1;
+        let aliveColIdx = 2;
+        let killsColIdx = 3;
+        let pointsColIdx = 4;
+        
+        let headerRow = null;
+        for (let row of rows) {
+          if (!row || row.length < 2) continue;
+          let hasTeam = row.some(cell => {
+            let c = cell.toLowerCase().trim();
+            return c === 'team' || c === 'teams' || c === 'team name';
+          });
+          if (hasTeam) {
+            headerRow = row;
+            break;
+          }
+        }
+        
+        if (headerRow) {
+          headerRow.forEach((cell, idx) => {
+            let c = cell.toLowerCase().trim();
+            if (c === 'team' || c === 'teams' || c === 'team name' || c === 'teamname') {
+              teamColIdx = idx;
+            } else if (c === 'alive' || c === 'status') {
+              aliveColIdx = idx;
+            } else if (c === 'kills' || c === 'kill') {
+              killsColIdx = idx;
+            } else if (c === 'points' || c === 'pts' || c === 'total points') {
+              pointsColIdx = idx;
+            }
+          });
+        }
+
         const teams = [];
 
-        for (let r of rows) {
-          if (!r || r.length < 2) continue;
+        for (let row of rows) {
+          if (!row || row.length <= Math.max(teamColIdx, killsColIdx)) continue;
 
-          let nameCandidate = (r[1] || '').trim();
+          let nameCandidate = (row[teamColIdx] || '').trim();
           if (!isValidTeamName(nameCandidate)) continue;
 
-          // Alive value (Column C = index 2)
-          let aliveVal = 0;
-          if (r[2] !== undefined) {
-            let str = r[2].trim();
-            let barCount = (str.match(/[▌█|]/g) || []).length;
-            if (barCount > 0) {
-              aliveVal = barCount;
-            } else {
-              let parsed = parseInt(str, 10);
-              aliveVal = isNaN(parsed) ? 0 : parsed;
+          // Alive value (defaults to 1 if not present in sheet)
+          let aliveVal = 1;
+          if (headerRow && headerRow.some(cell => cell.toLowerCase().trim() === 'alive' || cell.toLowerCase().trim() === 'status')) {
+            aliveVal = 0;
+            if (row[aliveColIdx] !== undefined) {
+              let str = row[aliveColIdx].trim();
+              let barCount = (str.match(/[▌█|]/g) || []).length;
+              if (barCount > 0) {
+                aliveVal = barCount;
+              } else {
+                let parsed = parseInt(str, 10);
+                aliveVal = isNaN(parsed) ? 0 : parsed;
+              }
             }
           }
 
-          // Kills value (Column D = index 3)
+          // Kills value
           let killsVal = 0;
-          if (r[3] !== undefined && r[3] !== '') {
-            killsVal = parseInt(r[3].trim(), 10);
+          if (row[killsColIdx] !== undefined && row[killsColIdx] !== '') {
+            killsVal = parseInt(row[killsColIdx].trim(), 10);
             if (isNaN(killsVal)) killsVal = 0;
           }
 
-          // Points value (Column E = index 4)
+          // Points value
           let pointsVal = 0;
-          if (r[4] !== undefined && r[4] !== '') {
-            pointsVal = parseInt(r[4].trim(), 10);
+          if (row[pointsColIdx] !== undefined && row[pointsColIdx] !== '') {
+            pointsVal = parseInt(row[pointsColIdx].trim(), 10);
             if (isNaN(pointsVal)) pointsVal = 0;
           }
 
@@ -553,10 +611,12 @@
 
     function sortTeams(teams) {
       teams.sort((a, b) => {
-        let aAlive = a.alive > 0 ? 1 : 0;
-        let bAlive = b.alive > 0 ? 1 : 0;
-        if (aAlive !== bAlive) {
-          return bAlive - aAlive; // Alive teams first
+        if (currentMode === 'Live Match') {
+          let aAlive = a.alive > 0 ? 1 : 0;
+          let bAlive = b.alive > 0 ? 1 : 0;
+          if (aAlive !== bAlive) {
+            return bAlive - aAlive; // Alive teams first
+          }
         }
         if (b.points !== a.points) {
           return b.points - a.points; // Sort by Points descending
@@ -575,15 +635,20 @@
       teams.forEach((t, i) => {
         const row = document.createElement('div');
         const isOut = (t.alive === 0);
-        row.className = 'team-row' + (isOut ? ' eliminated' : '');
+        row.className = 'team-row' + (isOut && currentMode === 'Live Match' ? ' eliminated' : '');
         row.id = 'row_' + safeid(t.name);
 
-        let aliveSymbols = isOut ? 'OUT' : '▮'.repeat(t.alive);
+        let aliveSymbols = '';
+        if (currentMode === 'Overall Standings') {
+          aliveSymbols = t.points;
+        } else {
+          aliveSymbols = isOut ? 'OUT' : '▮'.repeat(t.alive);
+        }
 
         row.innerHTML = `
           <div class="team-name-cell" title="${t.name}">${t.name}</div>
           <div class="kills-cell" id="kills_${safeid(t.name)}">${t.kills}</div>
-          <div class="alive-cell ${isOut ? 'zero' : ''}" id="alive_${safeid(t.name)}">${aliveSymbols}</div>
+          <div class="alive-cell ${isOut && currentMode === 'Live Match' ? 'zero' : ''}" id="alive_${safeid(t.name)}">${aliveSymbols}</div>
         `;
         list.appendChild(row);
 
@@ -614,40 +679,47 @@
           flashRow(row, 'rgba(255, 204, 0, 0.2)');
         }
 
-        if (t.points !== prev.points) {
-          animateNumber('points_' + id, prev.points, t.points, '#00d4ff');
-          flashRow(row, 'rgba(0, 212, 255, 0.2)');
-        }
+        if (currentMode === 'Overall Standings') {
+          if (t.points !== prev.points) {
+            animateNumber('alive_' + id, prev.points, t.points, '#00d4ff');
+            flashRow(row, 'rgba(0, 212, 255, 0.2)');
+          }
+        } else {
+          if (t.points !== prev.points) {
+            animateNumber('points_' + id, prev.points, t.points, '#00d4ff');
+            flashRow(row, 'rgba(0, 212, 255, 0.2)');
+          }
 
-        if (t.alive !== prev.alive) {
-          const aliveEl = e('alive_' + id);
-          if (t.alive === 0 && prev.alive > 0) {
-            if (!row.classList.contains('eliminated')) {
-              // Calculate placement: number of teams currently alive + 1
-              let aliveCountAfter = teams.filter(x => x.alive > 0).length;
-              let placement = aliveCountAfter + 1;
-              t.placement = placement;
+          if (t.alive !== prev.alive) {
+            const aliveEl = e('alive_' + id);
+            if (t.alive === 0 && prev.alive > 0) {
+              if (!row.classList.contains('eliminated')) {
+                // Calculate placement: number of teams currently alive + 1
+                let aliveCountAfter = teams.filter(x => x.alive > 0).length;
+                let placement = aliveCountAfter + 1;
+                t.placement = placement;
 
-              markEliminated(row, id, t);
-              popupQueue.push(t);
-              drainPopupQueue();
+                markEliminated(row, id, t);
+                popupQueue.push(t);
+                drainPopupQueue();
+              }
+            } else {
+              if (prev.alive === 0 && t.alive > 0) {
+                row.classList.remove('eliminated');
+                row.style.backgroundColor = '';
+                if (aliveEl) aliveEl.className = 'alive-cell';
+              }
+              if (aliveEl) {
+                aliveEl.innerText = '▮'.repeat(t.alive);
+                anime({
+                  targets: aliveEl,
+                  scale: [1.3, 1],
+                  duration: 400,
+                  easing: 'easeOutBack'
+                });
+              }
+              flashRow(row, 'rgba(0, 255, 136, 0.2)');
             }
-          } else {
-            if (prev.alive === 0 && t.alive > 0) {
-              row.classList.remove('eliminated');
-              row.style.backgroundColor = '';
-              if (aliveEl) aliveEl.className = 'alive-cell';
-            }
-            if (aliveEl) {
-              aliveEl.innerText = '▮'.repeat(t.alive);
-              anime({
-                targets: aliveEl,
-                scale: [1.3, 1],
-                duration: 400,
-                easing: 'easeOutBack'
-              });
-            }
-            flashRow(row, 'rgba(0, 255, 136, 0.2)');
           }
         }
       });
@@ -760,6 +832,11 @@
 
     // Update footer totals
     function updateFooter(teams) {
+      if (currentMode === 'Overall Standings') {
+        e('panelFooter').style.display = 'none';
+        return;
+      }
+      e('panelFooter').style.display = 'flex';
       const alive = teams.filter(t => t.alive > 0).length;
       const elim  = teams.filter(t => t.alive === 0).length;
       e('aliveCount').innerText = alive;
@@ -817,6 +894,22 @@
           "ftype": "textfield",
           "title": "Google Sheet CSV URL / Embed Code",
           "value": "https://docs.google.com/spreadsheets/d/1Lm61yqAgFFZRIOQxlsK_27s7B77vtOiYk9g_Uq-EZ_8/edit?gid=1030597977#gid=1030597977"
+        },
+        {
+          "field": "f1",
+          "ftype": "select",
+          "title": "Scoreboard Mode",
+          "value": "Live Match",
+          "items": [
+            {"value": "Live Match", "text": "Live Match"},
+            {"value": "Overall Standings", "text": "Overall Standings"}
+          ]
+        },
+        {
+          "field": "f2",
+          "ftype": "textfield",
+          "title": "Overall Standings CSV URL / Embed Code",
+          "value": "https://docs.google.com/spreadsheets/d/1Lm61yqAgFFZRIOQxlsK_27s7B77vtOiYk9g_Uq-EZ_8/edit?gid=1030597977#gid=1030597977"
         }
       ]
     };
@@ -825,6 +918,8 @@
 <body>
 
   <div id="f0" style="display:none;"></div>
+  <div id="f1" style="display:none;"></div>
+  <div id="f2" style="display:none;"></div>
 
   <!-- RIGHT SIDE SCOREBOARD PANEL -->
   <div id="scorePanel">
