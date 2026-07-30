@@ -1,7 +1,7 @@
 {
   "warning": "Modifications done in the SPX will overwrite this file.",
   "copyright": "(c) 2020- SPX Graphics (https://spxgraphics.com)",
-  "updated": "2026-07-30T19:07:56.376Z",
+  "updated": "2026-07-30T19:21:48.221Z",
   "templates": [
     {
       "description": "Tournament Live Scoreboard (right panel)",
@@ -17,7 +17,7 @@
           "field": "f0",
           "ftype": "textfield",
           "title": "Google Sheet CSV URL",
-          "value": "https://docs.google.com/spreadsheets/d/1Lm61yqAgEFZRIOQxlsK_27s7B77vtOiYk9g_Uq-EZ_8/edit?userstoinvite=gninikhil6%40gmail.com&sharingaction=manageaccess&role=writer&gid=20693017#gid=20693017"
+          "value": "https://docs.google.com/spreadsheets/d/1Lm61yqAgEFZRIOQxlsK_27s7B77vtOiYk9g_Uq-EZ_8/edit?userstoinvite=gninikhil6%40gmail.com&sharingaction=manageaccess&role=writer&gid=694167234#gid=694167234"
         },
         {
           "field": "f1",
@@ -25,15 +25,21 @@
           "title": "Scoreboard Mode",
           "value": "Overall Standings",
           "items": [
-            {"value": "Live Match", "text": "Live Match"},
-            {"value": "Overall Standings", "text": "Overall Standings"}
+            {
+              "value": "Live Match",
+              "text": "Live Match"
+            },
+            {
+              "value": "Overall Standings",
+              "text": "Overall Standings"
+            }
           ]
         },
         {
           "field": "f2",
           "ftype": "textfield",
           "title": "Overall Standings CSV URL / Embed Code",
-          "value": "https://docs.google.com/spreadsheets/d/1Lm61yqAgEFZRIOQxlsK_27s7B77vtOiYk9g_Uq-EZ_8/edit?gid=785807032#gid=785807032"
+          "value": "https://docs.google.com/spreadsheets/d/1Lm61yqAgEFZRIOQxlsK_27s7B77vtOiYk9g_Uq-EZ_8/edit?userstoinvite=gninikhil6%40gmail.com&sharingaction=manageaccess&role=writer&gid=645808816#gid=645808816"
         },
         {
           "field": "f3",
@@ -42,7 +48,8 @@
           "value": "Final Stage",
           "items": [
             {"value": "Group Stage", "text": "Group Stage"},
-            {"value": "Final Stage", "text": "Final Stage"}
+            {"value": "Final Stage", "text": "Final Stage"},
+            {"value": "Group + Final", "text": "Group + Final"}
           ]
         }
       ],
@@ -79,18 +86,13 @@
           "title": "Standings Mode",
           "value": "Group Stage",
           "items": [
-            {
-              "value": "Group Stage",
-              "text": "Group Stage"
-            },
-            {
-              "value": "Final Stage",
-              "text": "Final Stage"
-            }
+            {"value": "Group Stage", "text": "Group Stage"},
+            {"value": "Final Stage", "text": "Final Stage"},
+            {"value": "Group + Final", "text": "Group + Final"}
           ]
         }
       ],
-      "onair": "false",
+      "onair": "true",
       "imported": "1773083291300",
       "relpath": "/tournament/POINTS_TABLE.html",
       "itemID": "1773083297002"

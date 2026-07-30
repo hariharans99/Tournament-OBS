@@ -108,7 +108,14 @@ router.get('/tournament/standings', async (req, res) => {
     }
 
     const axios = require('axios');
-    const matchGids = mode === 'Final Stage' ? SHEET_GIDS.finals : SHEET_GIDS.group;
+    let matchGids = [];
+    if (mode === 'Final Stage') {
+      matchGids = SHEET_GIDS.finals;
+    } else if (mode === 'Group + Final') {
+      matchGids = SHEET_GIDS.group.concat(SHEET_GIDS.finals);
+    } else {
+      matchGids = SHEET_GIDS.group;
+    }
 
     // Fetch TotalPoints + all match sheets in parallel
     const [pointsText, ...matchTexts] = await Promise.all([
@@ -124,36 +131,42 @@ router.get('/tournament/standings', async (req, res) => {
       if (row.some(c => ['team','teams','team name'].includes(c.toLowerCase().trim()))) { ptHeaderRow = row; break; }
     }
 
-    let ptTeamIdx = -1, ptPointsIdx = -1;
+    let ptTeamIdx = -1;
+    let ptGroupPointsIdx = -1;
+    let ptFinalPointsIdx = -1;
+
     if (ptHeaderRow) {
-      if (mode === 'Final Stage') {
-        // Must match "Total Points" (both words) — bare "Points" columns (S, Z) must be ignored
-        // Keep overwriting so we land on the LAST "Total Points" = Column P (idx 15)
-        ptHeaderRow.forEach((c, i) => {
-          const l = c.toLowerCase().trim();
-          if (ptTeamIdx === -1 && ['team','teams','team name','teamname'].includes(l)) ptTeamIdx = i;
-          if (l.includes('total') && l.includes('points') && !l.includes('kill') && !l.includes('match')) {
-            ptPointsIdx = i;
+      ptHeaderRow.forEach((c, i) => {
+        const l = c.toLowerCase().trim();
+        if (ptTeamIdx === -1 && ['team','teams','team name','teamname'].includes(l)) ptTeamIdx = i;
+        if (l.includes('total') && l.includes('points') && !l.includes('kill') && !l.includes('match')) {
+          if (ptGroupPointsIdx === -1) {
+            ptGroupPointsIdx = i; // First Total Points (Col H / idx 7)
           }
-        });
-      } else {
-        // Group Stage: first "Total Points" column = Column H (idx 7)
-        ptHeaderRow.forEach((c, i) => {
-          const l = c.toLowerCase().trim();
-          if (ptTeamIdx === -1 && ['team','teams','team name','teamname'].includes(l)) ptTeamIdx = i;
-          else if (ptPointsIdx === -1 && l.includes('total') && l.includes('points') && !l.includes('kill') && !l.includes('match')) ptPointsIdx = i;
-        });
-      }
+          ptFinalPointsIdx = i; // Overwrites so we get last Total Points (Col P / idx 15)
+        }
+      });
     }
     if (ptTeamIdx === -1) ptTeamIdx = 1;
-    if (ptPointsIdx === -1) ptPointsIdx = mode === 'Final Stage' ? 15 : 7; // Col H=7, Col P=15
+    if (ptGroupPointsIdx === -1) ptGroupPointsIdx = 7;
+    if (ptFinalPointsIdx === -1) ptFinalPointsIdx = 15;
 
     const pointsMap = {};
     for (const row of pointsRows) {
       if (!row || row.length < 2) continue;
       const name = (row[ptTeamIdx] || '').trim();
       if (!isValidTeamName(name)) continue;
-      const pts = parseInt(row[ptPointsIdx] || '0', 10) || 0;
+
+      let pts = 0;
+      if (mode === 'Final Stage') {
+        pts = parseInt(row[ptFinalPointsIdx] || '0', 10) || 0;
+      } else if (mode === 'Group + Final') {
+        const groupPts = parseInt(row[ptGroupPointsIdx] || '0', 10) || 0;
+        const finalPts = parseInt(row[ptFinalPointsIdx] || '0', 10) || 0;
+        pts = groupPts + finalPts;
+      } else {
+        pts = parseInt(row[ptGroupPointsIdx] || '0', 10) || 0;
+      }
       pointsMap[name.toLowerCase()] = { name, points: pts };
     }
 
