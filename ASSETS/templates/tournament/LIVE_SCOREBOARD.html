@@ -108,8 +108,8 @@
     #teamList {
       position: absolute;
       top: 22.8vh; /* Shifted down below headers */
-      left: 0;
-      width: 100%;
+      left: 0.5vw; /* Center horizontally by adding a left margin */
+      width: 23.81vw; /* Slightly narrower to avoid stretching to the edges */
       height: 59.0vh; /* Fits perfectly above bottom separator */
       overflow: hidden;
       display: flex;
@@ -120,10 +120,10 @@
 
     .team-row {
       display: grid;
-      grid-template-columns: 8.40vw 5.93vw 5.93vw 4.54vw;
+      grid-template-columns: 8.06vw 5.69vw 5.69vw 4.37vw; /* Scaled down to fit 23.81vw */
       flex: 1;
       max-height: 4.69vh; /* Exact height per row */
-      min-height: 2.5vh;
+      min-height: 1.8vh; /* Allow it to shrink to fit all 25 teams */
       padding: 0;
       align-items: center;
       border-bottom: none;
@@ -151,7 +151,7 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      padding-left: 1.98vw;
+      padding-left: 1.48vw; /* Adjusted from 1.98vw because teamList is at left: 0.5vw */
     }
 
     .team-row.eliminated .team-name-cell {
@@ -231,7 +231,7 @@
 
     #aliveCount {
       position: absolute;
-      left: 7.2vw;  /* Move next to the baked-in ALIVE text */
+      left: 8.5vw;  /* Move next to the baked-in ALIVE text */
       bottom: 1.1vh; /* Align with text baseline */
       font-size: 0.95vw;
       font-weight: 900;
@@ -242,7 +242,7 @@
 
     #elimCount {
       position: absolute;
-      left: 20.2vw;  /* Move next to the baked-in ELIMINATED text */
+      left: 22.5vw;  /* Move next to the baked-in ELIMINATED text */
       bottom: 1.1vh; /* Align with text baseline */
       font-size: 0.95vw;
       font-weight: 900;
