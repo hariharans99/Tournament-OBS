@@ -126,10 +126,10 @@
       50%       { opacity: 0.4; transform: scale(0.8); }
     }
 
-    /* ── Column Headers (Team | Kills | PTS | Alive) ──────────────── */
+    /* ── Column Headers (Team | Kills | Alive) ──────────────── */
     #colHeaders {
       display: grid;
-      grid-template-columns: 1fr 44px 44px 60px;
+      grid-template-columns: 1fr 60px 80px;
       padding: 7px 12px;
       border-bottom: 1px solid rgba(200, 90, 0, 0.4);
       background: rgba(255, 100, 0, 0.10);
@@ -162,7 +162,7 @@
 
     .team-row {
       display: grid;
-      grid-template-columns: 1fr 44px 44px 60px;
+      grid-template-columns: 1fr 60px 80px;
       padding: 6px 12px;
       align-items: center;
       border-bottom: 1px solid rgba(255, 100, 0, 0.08);
@@ -252,7 +252,7 @@
 
     #elimCount {
       font-size: 12px;
-      color: #ff4444;
+      color: #ffa040;
       font-weight: 700;
       letter-spacing: 1px;
     }
@@ -587,7 +587,6 @@
         row.innerHTML = `
           <div class="team-name-cell" title="${t.name}">${t.name}</div>
           <div class="kills-cell" id="kills_${safeid(t.name)}">${t.kills}</div>
-          <div class="points-cell" id="points_${safeid(t.name)}">${t.points}</div>
           <div class="alive-cell ${isOut ? 'zero' : ''}" id="alive_${safeid(t.name)}">${aliveSymbols}</div>
         `;
         list.appendChild(row);
@@ -767,8 +766,8 @@
     function updateFooter(teams) {
       const alive = teams.filter(t => t.alive > 0).length;
       const elim  = teams.filter(t => t.alive === 0).length;
-      e('aliveCount').innerText = `✔ ALIVE: ${alive}`;
-      e('elimCount').innerText  = `✖ OUT: ${elim}`;
+      e('aliveCount').innerText = `✓ ALIVE: ${alive}`;
+      e('elimCount').innerText  = `X ELIMINATED: ${elim}`;
     }
 
     function showPanel() {
@@ -842,19 +841,18 @@
       </div>
     </div>
 
-    <!-- 4 Columns: TEAM | KILLS | PTS | ALIVE -->
+    <!-- 3 Columns: TEAM | KILLS | ALIVE -->
     <div id="colHeaders">
       <div class="col-hdr name">TEAM</div>
       <div class="col-hdr">KILLS</div>
-      <div class="col-hdr">PTS</div>
       <div class="col-hdr">ALIVE</div>
     </div>
 
     <div id="teamList"></div>
 
     <div id="panelFooter">
-      <div id="aliveCount">✔ ALIVE: —</div>
-      <div id="elimCount">✖ ELIMINATED: —</div>
+      <div id="aliveCount">✓ ALIVE: —</div>
+      <div id="elimCount">X ELIMINATED: —</div>
     </div>
   </div>
 
