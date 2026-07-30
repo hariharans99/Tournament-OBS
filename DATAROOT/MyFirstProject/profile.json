@@ -13,7 +13,23 @@
         {
           "field": "f0",
           "ftype": "textfield",
-          "title": "Google Sheet CSV URL",
+          "title": "Google Sheet CSV URL / Embed Code",
+          "value": "https://docs.google.com/spreadsheets/d/1Lm61yqAgFFZRIOQxlsK_27s7B77vtOiYk9g_Uq-EZ_8/edit?gid=1030597977#gid=1030597977"
+        },
+        {
+          "field": "f1",
+          "ftype": "select",
+          "title": "Scoreboard Mode",
+          "value": "Live Match",
+          "items": [
+            {"value": "Live Match", "text": "Live Match"},
+            {"value": "Overall Standings", "text": "Overall Standings"}
+          ]
+        },
+        {
+          "field": "f2",
+          "ftype": "textfield",
+          "title": "Overall Standings CSV URL / Embed Code",
           "value": "https://docs.google.com/spreadsheets/d/1Lm61yqAgFFZRIOQxlsK_27s7B77vtOiYk9g_Uq-EZ_8/edit?gid=1030597977#gid=1030597977"
         }
       ],

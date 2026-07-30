@@ -576,28 +576,24 @@
 
         if (currentMode === 'Overall Standings') {
           // ── Overall Standings mode: parse TotalPoints sheet ──────────────
-          // Format: Team | Match1 Pts | Match2 Pts | ... | Total
-          // We find the column named "total", "grand total", "sum", or use last column
-
-          let teamColIdx = 0;
-          let totalColIdx = -1;
+          // Format: Team | Match1 Pts | Match2 Pts | ... | Total Kills | Total Points (Column I)
+          let teamColIdx = 1;  // Column B
+          let killsColIdx = 7; // Column H (Total Kills)
+          let totalColIdx = 8; // Column I (Total Points)
 
           if (headerRow) {
             headerRow.forEach((cell, idx) => {
               let c = cell.toLowerCase().trim();
               if (c === 'team' || c === 'teams' || c === 'team name' || c === 'teamname') {
                 teamColIdx = idx;
-              }
-              if (c === 'total' || c === 'grand total' || c === 'sum' || c === 'total points' || c === 'overall') {
+              } else if (c.includes('kill') && !c.includes('match')) {
+                // e.g. "total kills", "kills"
+                killsColIdx = idx;
+              } else if ((c.includes('total') || c.includes('points') || c === 'pts') && !c.includes('kill') && !c.includes('match')) {
+                // e.g. "total points", "total"
                 totalColIdx = idx;
               }
             });
-            // If no Total column found by name, use the last column
-            if (totalColIdx === -1) totalColIdx = headerRow.length - 1;
-          } else {
-            // No header row — col 0 = team, last col = total
-            const sampleRow = rows.find(r => r && r.length > 1);
-            if (sampleRow) totalColIdx = sampleRow.length - 1;
           }
 
           for (let row of rows) {
@@ -605,13 +601,19 @@
             let nameCandidate = (row[teamColIdx] || '').trim();
             if (!isValidTeamName(nameCandidate)) continue;
 
+            let killsVal = 0;
+            if (row[killsColIdx] !== undefined && row[killsColIdx] !== '') {
+              killsVal = parseInt(row[killsColIdx].trim(), 10);
+              if (isNaN(killsVal)) killsVal = 0;
+            }
+
             let totalVal = 0;
             if (row[totalColIdx] !== undefined && row[totalColIdx] !== '') {
               totalVal = parseInt(row[totalColIdx].trim(), 10);
               if (isNaN(totalVal)) totalVal = 0;
             }
 
-            teams.push({ name: nameCandidate, alive: 1, kills: 0, points: totalVal });
+            teams.push({ name: nameCandidate, alive: 1, kills: killsVal, points: totalVal });
           }
 
           // Sort by total descending then assign ranks
@@ -708,11 +710,10 @@
 
         let innerHtml = '';
         if (currentMode === 'Overall Standings') {
-          const rankClass = t.rank <= 3 ? 'rank-cell rank-top3' : 'rank-cell';
           innerHtml = `
             <div class="team-name-cell" title="${t.name}">${t.name}</div>
-            <div class="total-cell" id="kills_${safeid(t.name)}">${t.points}</div>
-            <div class="${rankClass}" id="alive_${safeid(t.name)}">#${t.rank}</div>
+            <div class="kills-cell" id="kills_${safeid(t.name)}">${t.kills}</div>
+            <div class="total-cell" id="alive_${safeid(t.name)}">${t.points}</div>
           `;
         } else {
           let aliveSymbols = isOut ? 'OUT' : '▮'.repeat(t.alive);
@@ -1008,11 +1009,11 @@
       <div id="teamList"></div>
     </div>
 
-    <!-- Overall Standings header overlay (TEAM | TOTAL | RANK) -->
+    <!-- Overall Standings header overlay (TEAM | KILLS | TOTAL) -->
     <div id="standingsHeaders">
       <div class="standings-hdr name">TEAM</div>
+      <div class="standings-hdr">KILLS</div>
       <div class="standings-hdr">TOTAL</div>
-      <div class="standings-hdr">RANK</div>
     </div>
 
     <div id="panelFooter">
