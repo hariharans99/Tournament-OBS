@@ -382,9 +382,13 @@
             matches = matchesMap[name.toLowerCase()];
           } else {
             // Fallback: count columns that actually had scores > 0 across any team
+            // AND are not blank/empty for this particular team
             matchCols.forEach(idx => {
               if (playedCols.has(idx)) {
-                matches++;
+                const cellVal = row[idx];
+                if (cellVal !== undefined && cellVal.trim() !== '') {
+                  matches++;
+                }
               }
             });
           }
