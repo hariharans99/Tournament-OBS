@@ -107,10 +107,10 @@
     /* ── Team Rows Container ───────────────────────────────────────── */
     #teamList {
       position: absolute;
-      top: 15.0vh; /* Shifted down to leave a gap under headers */
+      top: 22.8vh; /* Shifted down below headers */
       left: 0;
       width: 100%;
-      height: 64.0vh; /* Comfortable spacing above bottom separator */
+      height: 59.0vh; /* Fits perfectly above bottom separator */
       overflow: hidden;
       display: flex;
       flex-direction: column;
@@ -232,7 +232,7 @@
     #aliveCount {
       position: absolute;
       left: 7.2vw;  /* Move next to the baked-in ALIVE text */
-      bottom: 0.8vh; /* Align with text baseline */
+      bottom: 1.1vh; /* Align with text baseline */
       font-size: 0.95vw;
       font-weight: 900;
       color: #ffffff;
@@ -243,7 +243,7 @@
     #elimCount {
       position: absolute;
       left: 20.2vw;  /* Move next to the baked-in ELIMINATED text */
-      bottom: 0.8vh; /* Align with text baseline */
+      bottom: 1.1vh; /* Align with text baseline */
       font-size: 0.95vw;
       font-weight: 900;
       color: #ffffff;
@@ -946,11 +946,11 @@
       </div>
 
       <div id="teamList"></div>
-    </div>
 
-    <div id="panelFooter">
-      <span id="aliveCount">—</span>
-      <span id="elimCount">—</span>
+      <div id="panelFooter">
+        <span id="aliveCount">—</span>
+        <span id="elimCount">—</span>
+      </div>
     </div>
   </div>
 
