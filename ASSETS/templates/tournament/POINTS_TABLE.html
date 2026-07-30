@@ -309,16 +309,18 @@
           if (row.some(c => ['team','teams','team name'].includes(c.toLowerCase().trim()))) { headerRow = row; break; }
         }
 
-        let teamIdx = 1, killsIdx = -1, pointsIdx = -1;
+        let teamIdx = -1, killsIdx = -1, pointsIdx = -1;
         if (headerRow) {
           headerRow.forEach((c, i) => {
             const l = c.toLowerCase().trim();
-            if (['team','teams','team name','teamname'].includes(l)) teamIdx = i;
-            else if (['kills','kill'].includes(l)) killsIdx = i;
-            else if (l.includes('total') && !l.includes('kill') && !l.includes('match')) pointsIdx = i;
-            else if (['points','pts'].includes(l) && pointsIdx < 0) pointsIdx = i;
+            if (teamIdx === -1 && ['team','teams','team name','teamname'].includes(l)) teamIdx = i;
+            else if (killsIdx === -1 && ['kills','kill'].includes(l)) killsIdx = i;
+            else if (pointsIdx === -1 && l.includes('total') && !l.includes('kill') && !l.includes('match')) pointsIdx = i;
+            else if (pointsIdx === -1 && ['points','pts'].includes(l)) pointsIdx = i;
           });
         }
+        if (teamIdx === -1) teamIdx = 1;
+        if (pointsIdx === -1) pointsIdx = 8; // Default Column H (index 8)
 
         // Fetch GIDs for Match 1 to Match 6 in parallel from the same spreadsheet
         const sheetId = extractSheetId(csvUrl);
