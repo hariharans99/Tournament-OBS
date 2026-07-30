@@ -1,7 +1,7 @@
 {
   "warning": "Modifications done in the SPX will overwrite this file.",
   "copyright": "(c) 2020- SPX Graphics (https://spxgraphics.com)",
-  "updated": "2026-07-30T16:35:17.964Z",
+  "updated": "2026-07-30T16:40:06.276Z",
   "templates": [
     {
       "description": "Tournament Live Scoreboard (right panel)",
@@ -40,6 +40,12 @@
           "ftype": "textfield",
           "title": "Google Sheet CSV URL (TotalPoints tab)",
           "value": "https://docs.google.com/spreadsheets/d/1Lm61yqAgEFZRIOQxlsK_27s7B77vtOiYk9g_Uq-EZ_8/edit?pli=1&gid=785807032#gid=785807032"
+        },
+        {
+          "field": "f1",
+          "ftype": "textfield",
+          "title": "Google Sheet CSV URL (Matchesplayed tab)",
+          "value": "https://docs.google.com/spreadsheets/d/1Lm61yqAgEFZRIOQxlsK_27s7B77vtOiYk9g_Uq-EZ_8/edit?pli=1&gid=833022830#gid=833022830"
         }
       ],
       "onair": "true",

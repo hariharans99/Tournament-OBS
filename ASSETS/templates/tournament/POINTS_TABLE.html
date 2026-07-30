@@ -52,7 +52,7 @@
 
     .hdr-half {
       display: grid;
-      grid-template-columns: 80px 1fr 120px 120px;
+      grid-template-columns: 80px 1fr 100px 100px 100px;
       padding: 0 24px;
       height: 30px;
       align-items: center;
@@ -88,13 +88,22 @@
     /* ── Team Row ── */
     .pt-row {
       display: grid;
-      grid-template-columns: 80px 1fr 120px 120px;
+      grid-template-columns: 80px 1fr 100px 100px 100px;
       align-items: center;
       height: 58px;
       padding: 0 24px;
       opacity: 0;
       transform: translateX(-40px);
       position: relative;
+    }
+
+    .matches-val {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      text-align: center;
+      color: #00bcd4;
+      text-shadow: 0 0 8px rgba(0,188,212,0.4);
     }
 
     /* Subtle row backgrounds/overlays for top 3 */
@@ -251,22 +260,23 @@
 
     async function runTemplateUpdate() {
       const csvUrl = e('f0') ? e('f0').innerText.trim() : '';
-      if (isRunning) { await fetchAndRender(csvUrl, false); return; }
+      const matchesUrl = e('f1') ? e('f1').innerText.trim() : '';
+      if (isRunning) { await fetchAndRender(csvUrl, matchesUrl, false); return; }
       isRunning = true;
       currentIndex = 0;
-      await fetchAndRender(csvUrl, true);
+      await fetchAndRender(csvUrl, matchesUrl, true);
       isInitialized = true;
       showPanel();
-      scheduleRefresh(csvUrl);
+      scheduleRefresh(csvUrl, matchesUrl);
       startPageRotation();
     }
 
-    function scheduleRefresh(url) {
+    function scheduleRefresh(url, matchesUrl) {
       if (!isRunning) return;
       refreshTimer = setTimeout(async () => {
         if (!isRunning) return;
-        await fetchAndRender(url, false);
-        scheduleRefresh(url);
+        await fetchAndRender(url, matchesUrl, false);
+        scheduleRefresh(url, matchesUrl);
       }, REFRESH_MS);
     }
 
@@ -286,12 +296,14 @@
       renderCurrentPage(true);
     }
 
-    async function fetchAndRender(csvUrl, isFirst) {
+    async function fetchAndRender(csvUrl, matchesUrl, isFirst) {
       try {
-        const text = await fetchCsv(csvUrl);
-        if (!text) { console.warn('Points Table: no CSV'); return; }
+        const pointsText = await fetchCsv(csvUrl);
+        if (!pointsText) { console.warn('Points Table: no CSV'); return; }
 
-        const rows = parseCSV(text);
+        const matchesText = matchesUrl ? await fetchCsv(matchesUrl) : '';
+
+        const rows = parseCSV(pointsText);
 
         let headerRow = null;
         for (const row of rows) {
@@ -300,6 +312,7 @@
         }
 
         let teamIdx = 1, killsIdx = -1, pointsIdx = -1;
+        let matchCols = [];
         if (headerRow) {
           headerRow.forEach((c, i) => {
             const l = c.toLowerCase().trim();
@@ -307,7 +320,38 @@
             else if (['kills','kill'].includes(l)) killsIdx = i;
             else if (l.includes('total') && !l.includes('kill') && !l.includes('match')) pointsIdx = i;
             else if (['points','pts'].includes(l) && pointsIdx < 0) pointsIdx = i;
+            else if (/^m\d+$/.test(l)) {
+              matchCols.push(i);
+            }
           });
+        }
+
+        // Parse Matches Played from matchesText if available
+        const matchesMap = {};
+        if (matchesText) {
+          const mRows = parseCSV(matchesText);
+          let mTeamIdx = -1, mValIdx = -1;
+          for (const r of mRows) {
+            if (!r || r.length < 2) continue;
+            if (r.some(c => ['team','teams','team name'].includes(c.toLowerCase().trim()))) {
+              r.forEach((c, i) => {
+                const l = c.toLowerCase().trim();
+                if (['team','teams','team name','teamname'].includes(l)) mTeamIdx = i;
+                else if (['matches','matches played','played','match'].includes(l)) mValIdx = i;
+              });
+              break;
+            }
+          }
+          if (mTeamIdx < 0) mTeamIdx = 0;
+          if (mValIdx < 0) mValIdx = 1;
+
+          for (const r of mRows) {
+            if (!r || r.length <= Math.max(mTeamIdx, mValIdx)) continue;
+            const name = r[mTeamIdx].trim();
+            if (!isValidTeam(name)) continue;
+            const val = parseInt(r[mValIdx].trim() || '0', 10) || 0;
+            matchesMap[name.toLowerCase()] = val;
+          }
         }
 
         const teams = [];
@@ -317,7 +361,21 @@
           if (!isValidTeam(name)) continue;
           const kills  = killsIdx  >= 0 ? (parseInt(row[killsIdx]  || '0', 10) || 0) : 0;
           const points = pointsIdx >= 0 ? (parseInt(row[pointsIdx] || '0', 10) || 0) : 0;
-          teams.push({ name, kills, points });
+
+          // Resolve Matches Played
+          let matches = 0;
+          if (matchesMap[name.toLowerCase()] !== undefined) {
+            matches = matchesMap[name.toLowerCase()];
+          } else {
+            // Fallback: count non-empty cells in match columns M1-M6
+            matchCols.forEach(idx => {
+              if (row[idx] !== undefined && row[idx].trim() !== '') {
+                matches++;
+              }
+            });
+          }
+
+          teams.push({ name, kills, points, matches });
         }
 
         if (teams.length === 0) return;
@@ -366,6 +424,7 @@
       row.innerHTML = `
         <div class="rank-num">${medal}</div>
         <div class="team-name" title="${t.name}">${t.name}</div>
+        <div class="matches-val">${t.matches}</div>
         <div class="kills-val">${t.kills}</div>
         <div class="points-val">${t.points}</div>
       `;
@@ -400,6 +459,12 @@
           "ftype": "textfield",
           "title": "Google Sheet CSV URL (TotalPoints tab)",
           "value": "https://docs.google.com/spreadsheets/d/1Lm61yqAgEFZRIOQxlsK_27s7B77vtOiYk9g_Uq-EZ_8/edit?pli=1&gid=785807032#gid=785807032"
+        },
+        {
+          "field": "f1",
+          "ftype": "textfield",
+          "title": "Google Sheet CSV URL (Matchesplayed tab)",
+          "value": "https://docs.google.com/spreadsheets/d/1Lm61yqAgEFZRIOQxlsK_27s7B77vtOiYk9g_Uq-EZ_8/edit?pli=1&gid=833022830#gid=833022830"
         }
       ]
     };
@@ -408,6 +473,7 @@
 <body>
 
   <div id="f0" style="display:none;"></div>
+  <div id="f1" style="display:none;"></div>
 
   <div id="pointsPanel">
     <!-- Dual column headers positioned absolutely above the wrapper -->
@@ -415,12 +481,14 @@
       <div class="hdr-half">
         <div class="hdr-cell center">#</div>
         <div class="hdr-cell">TEAM NAME</div>
+        <div class="hdr-cell center">MATCHES</div>
         <div class="hdr-cell center">KILLS</div>
         <div class="hdr-cell center">POINTS</div>
       </div>
       <div class="hdr-half">
         <div class="hdr-cell center">#</div>
         <div class="hdr-cell">TEAM NAME</div>
+        <div class="hdr-cell center">MATCHES</div>
         <div class="hdr-cell center">KILLS</div>
         <div class="hdr-cell center">POINTS</div>
       </div>
