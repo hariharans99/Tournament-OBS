@@ -93,16 +93,17 @@
     }
 
     /* ── Column Headers (Team | Kills | Alive) ──────────────── */
+    /* Baked into background graphic — hidden to avoid doubling */
     #colHeaders {
       display: grid;
       grid-template-columns: 5.66vw 3.42vw 7.52vw;
       padding: 0;
       height: 4.51vh;
-      align-items: center; /* Center header text vertically */
+      align-items: center;
       border-bottom: none;
       background: transparent;
       flex-shrink: 0;
-      visibility: visible;
+      visibility: hidden; /* TEAM/KILLS/ALIVE are baked into the background image */
     }
 
     .col-hdr {
@@ -115,6 +116,32 @@
       text-align: center;
     }
     .col-hdr.name { text-align: left; }
+
+    /* ── Overall Standings mode header overlay ───────────────── */
+    /* Absolutely positioned over the graphic header bar for TOTAL | RANK labels */
+    #standingsHeaders {
+      position: absolute;
+      top: 10.67vh;  /* panelHeader (6.94vh) + colHeaders starts within panel-content */
+      left: 81.44vw;
+      width: 16.60vw;
+      height: 4.51vh;
+      display: none;  /* Only visible in Overall Standings mode */
+      grid-template-columns: 5.66vw 3.42vw 7.52vw;
+      align-items: center;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .standings-hdr {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.8vw;
+      font-weight: 700;
+      color: #ffd700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      text-align: center;
+    }
+    .standings-hdr.name { text-align: left; color: #ffa040; }
 
     /* ── Team Rows Container ───────────────────────────────────────── */
     #teamList {
@@ -451,15 +478,10 @@
       }
       rawCsvUrl = fieldVal || DEFAULT_CSV_URL;
 
-      // 3. Update column headers in HTML based on mode
-      const secondColHdr = document.querySelector('#colHeaders .col-hdr:nth-child(2)');
-      const thirdColHdr  = document.querySelector('#colHeaders .col-hdr:nth-child(3)');
-      if (currentMode === 'Overall Standings') {
-        if (secondColHdr) secondColHdr.innerText = 'TOTAL';
-        if (thirdColHdr)  thirdColHdr.innerText  = 'RANK';
-      } else {
-        if (secondColHdr) secondColHdr.innerText = 'KILLS';
-        if (thirdColHdr)  thirdColHdr.innerText  = 'ALIVE';
+      // 3. Toggle Overall Standings header overlay
+      const standingsHdr = e('standingsHeaders');
+      if (standingsHdr) {
+        standingsHdr.style.display = (currentMode === 'Overall Standings') ? 'grid' : 'none';
       }
 
       if (isRunning) {
@@ -976,7 +998,7 @@
         </div>
       </div>
 
-      <!-- 3 Columns: TEAM | KILLS | ALIVE -->
+      <!-- 3 Columns: TEAM | KILLS | ALIVE (hidden — baked in graphic) -->
       <div id="colHeaders">
         <div class="col-hdr name">TEAM</div>
         <div class="col-hdr">KILLS</div>
@@ -984,6 +1006,13 @@
       </div>
 
       <div id="teamList"></div>
+    </div>
+
+    <!-- Overall Standings header overlay (TEAM | TOTAL | RANK) -->
+    <div id="standingsHeaders">
+      <div class="standings-hdr name">TEAM</div>
+      <div class="standings-hdr">TOTAL</div>
+      <div class="standings-hdr">RANK</div>
     </div>
 
     <div id="panelFooter">
