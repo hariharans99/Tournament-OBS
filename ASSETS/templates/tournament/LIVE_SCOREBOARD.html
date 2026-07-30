@@ -26,9 +26,9 @@
       height: 100vh;
       transform: translateX(100vw);
       opacity: 0;
-      background: url('/media/scoreboard_bg.png?v=4') no-repeat;
-      background-size: 100% 100%;
-      background-position: center;
+      background: url('/media/scoreboard_bg.png?v=5') no-repeat;
+      background-size: 24.81vw 90.0vh;
+      background-position: 74.4vw 5.0vh;
       pointer-events: none;
       display: block;
       overflow: hidden;
@@ -37,10 +37,10 @@
     /* ── Inner content container aligned over the panel graphic ── */
     .panel-content {
       position: absolute;
-      top: 6.94vh;
-      left: 71.78vw;
-      width: 27.44vw;
-      height: 84.0vh;
+      top: 5.0vh;
+      left: 74.4vw;
+      width: 24.81vw;
+      height: 90.0vh;
       display: flex;
       flex-direction: column;
       overflow: visible;
@@ -78,13 +78,15 @@
     }
 
     #liveDot {
+      position: absolute;
+      top: 6.6vh;
+      left: 6.2vw;
       width: 0.5vw;
       height: 0.5vw;
       background: #ff8800;
       border-radius: 50%;
       box-shadow: 0 0 8px #ff8800;
       animation: pulse 1.5s infinite;
-      margin-left: 20.0vw; /* Align over the orange dot on new graphic */
     }
 
     @keyframes pulse {
@@ -105,10 +107,10 @@
     /* ── Team Rows Container ───────────────────────────────────────── */
     #teamList {
       position: absolute;
-      top: 16.80vh; /* Shifted down to leave a gap under headers */
+      top: 15.0vh; /* Shifted down to leave a gap under headers */
       left: 0;
       width: 100%;
-      height: 65.0vh; /* Comfortable spacing above bottom separator */
+      height: 64.0vh; /* Comfortable spacing above bottom separator */
       overflow: hidden;
       display: flex;
       flex-direction: column;
@@ -118,7 +120,7 @@
 
     .team-row {
       display: grid;
-      grid-template-columns: 10.25vw 4.39vw 5.86vw 6.93vw;
+      grid-template-columns: 8.40vw 5.93vw 5.93vw 4.54vw;
       flex: 1;
       max-height: 4.69vh; /* Exact height per row */
       min-height: 2.5vh;
@@ -149,7 +151,7 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      padding-left: 3.42vw;
+      padding-left: 1.98vw;
     }
 
     .team-row.eliminated .team-name-cell {
@@ -216,10 +218,10 @@
 
     #panelFooter {
       position: absolute;
-      bottom: 3.8vh; /* Center vertically with the baseline of the footer text */
-      left: 71.78vw;
-      width: 27.44vw;
-      height: 2.0vh;
+      top: 85.75vh; /* Align vertically in the footer area of the graphic */
+      left: 0;
+      width: 100%;
+      height: 3.0vh;
       display: flex;
       align-items: center;
       background: transparent;
@@ -229,8 +231,8 @@
 
     #aliveCount {
       position: absolute;
-      left: 9.8vw;  /* Move next to the baked-in ALIVE text */
-      bottom: 0;    /* Align with text baseline */
+      left: 7.2vw;  /* Move next to the baked-in ALIVE text */
+      bottom: 0.8vh; /* Align with text baseline */
       font-size: 0.95vw;
       font-weight: 900;
       color: #ffffff;
@@ -240,8 +242,8 @@
 
     #elimCount {
       position: absolute;
-      left: 26.2vw;  /* Move next to the baked-in ELIMINATED text */
-      bottom: 0;     /* Align with text baseline */
+      left: 20.2vw;  /* Move next to the baked-in ELIMINATED text */
+      bottom: 0.8vh; /* Align with text baseline */
       font-size: 0.95vw;
       font-weight: 900;
       color: #ffffff;
