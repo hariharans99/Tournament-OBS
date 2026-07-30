@@ -630,18 +630,13 @@
     }
 
     function sortTeams(teams) {
-      if (currentMode === 'Overall Standings') {
-        teams.sort((a, b) => b.overallPoints - a.overallPoints);
-        teams.forEach((t, idx) => { t.rank = idx + 1; });
-      } else {
-        teams.sort((a, b) => {
-          let aAlive = a.alive > 0 ? 1 : 0;
-          let bAlive = b.alive > 0 ? 1 : 0;
-          if (aAlive !== bAlive) return bAlive - aAlive;
-          if (b.overallPoints !== a.overallPoints) return b.overallPoints - a.overallPoints;
-          return b.kills - a.kills;
-        });
-      }
+      teams.sort((a, b) => {
+        if (b.overallPoints !== a.overallPoints) {
+          return b.overallPoints - a.overallPoints;
+        }
+        return b.kills - a.kills;
+      });
+      teams.forEach((t, idx) => { t.rank = idx + 1; });
     }
 
     function buildTable(teams) {
