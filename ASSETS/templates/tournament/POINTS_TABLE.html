@@ -30,10 +30,10 @@
     /* Positioned over the lower brownish area of the OBS layout */
     #tableWrapper {
       position: absolute;
-      top: 520px;
+      top: 545px;
       left: 25px;
       width: 1870px;
-      height: 496px; /* 8 rows * 62px = 496px */
+      height: 464px; /* 8 rows * 58px = 464px */
       display: flex;
       flex-direction: column;
     }
@@ -41,7 +41,7 @@
     /* ── Dual column header (absolutely positioned above the box) ── */
     #tableHeader {
       position: absolute;
-      top: 485px;
+      top: 505px;
       left: 25px;
       width: 1870px;
       display: grid;
@@ -90,7 +90,7 @@
       display: grid;
       grid-template-columns: 80px 1fr 120px 120px;
       align-items: center;
-      height: 62px;
+      height: 58px;
       padding: 0 24px;
       opacity: 0;
       transform: translateX(-40px);
@@ -116,18 +116,18 @@
 
     .rank-num {
       font-family: 'Orbitron', sans-serif;
-      font-size: 17px;
+      font-size: 16px;
       font-weight: 900;
       text-align: center;
       color: rgba(255,255,255,0.7);
       letter-spacing: 1px;
     }
-    .pt-row.rank-1 .rank-num { color: #ffd700; text-shadow: 0 0 8px rgba(255,215,0,0.8); font-size: 21px; }
-    .pt-row.rank-2 .rank-num { color: #c0c0c0; text-shadow: 0 0 8px rgba(192,192,192,0.8); font-size: 19px; }
-    .pt-row.rank-3 .rank-num { color: #cd7f32; text-shadow: 0 0 8px rgba(205,127,50,0.8); font-size: 19px; }
+    .pt-row.rank-1 .rank-num { color: #ffd700; text-shadow: 0 0 8px rgba(255,215,0,0.8); font-size: 20px; }
+    .pt-row.rank-2 .rank-num { color: #c0c0c0; text-shadow: 0 0 8px rgba(192,192,192,0.8); font-size: 18px; }
+    .pt-row.rank-3 .rank-num { color: #cd7f32; text-shadow: 0 0 8px rgba(205,127,50,0.8); font-size: 18px; }
 
     .team-name {
-      font-size: 19px;
+      font-size: 18px;
       font-weight: 700;
       color: #ffffff;
       white-space: nowrap;
@@ -136,13 +136,13 @@
       padding-left: 15px;
       letter-spacing: 0.5px;
     }
-    .pt-row.rank-1 .team-name { color: #fff5c0; font-size: 21px; }
+    .pt-row.rank-1 .team-name { color: #fff5c0; font-size: 20px; }
     .pt-row.rank-2 .team-name { color: #e8e8e8; }
     .pt-row.rank-3 .team-name { color: #f5deb3; }
 
     .kills-val {
       font-family: 'Orbitron', sans-serif;
-      font-size: 19px;
+      font-size: 18px;
       font-weight: 700;
       text-align: center;
       color: #ffc107;
@@ -151,13 +151,13 @@
 
     .points-val {
       font-family: 'Orbitron', sans-serif;
-      font-size: 21px;
+      font-size: 20px;
       font-weight: 900;
       text-align: center;
       color: #ff8c00;
       text-shadow: 0 0 10px rgba(255,140,0,0.6);
     }
-    .pt-row.rank-1 .points-val { color: #ffd700; text-shadow: 0 0 12px rgba(255,215,0,0.7); font-size: 23px; }
+    .pt-row.rank-1 .points-val { color: #ffd700; text-shadow: 0 0 12px rgba(255,215,0,0.7); font-size: 22px; }
   </style>
 
   <script>
