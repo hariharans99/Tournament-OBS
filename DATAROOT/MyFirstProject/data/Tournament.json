@@ -1,7 +1,7 @@
 {
   "warning": "Modifications done in the SPX will overwrite this file.",
   "copyright": "(c) 2020- SPX Graphics (https://spxgraphics.com)",
-  "updated": "2026-07-30T08:38:30.585Z",
+  "updated": "2026-07-30T09:20:07.460Z",
   "templates": [
     {
       "description": "Tournament Live Scoreboard (right panel)",
@@ -17,10 +17,10 @@
           "field": "f0",
           "ftype": "textfield",
           "title": "Google Sheet CSV URL",
-          "value": "https://docs.google.com/spreadsheets/d/1Lm61yqAgEFZRIOQxlsK_27s7B77vtOiYk9g_Uq-EZ_8/edit?pli=1&gid=528606447#gid=528606447"
+          "value": "https://docs.google.com/spreadsheets/d/1Lm61yqAgEFZRIOQxlsK_27s7B77vtOiYk9g_Uq-EZ_8/edit?pli=1&gid=1030597977#gid=1030597977"
         }
       ],
-      "onair": "false",
+      "onair": "true",
       "imported": "1773083291300",
       "relpath": "/tournament/LIVE_SCOREBOARD.html",
       "itemID": "1773083297001"
