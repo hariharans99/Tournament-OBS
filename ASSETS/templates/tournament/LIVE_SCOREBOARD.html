@@ -40,7 +40,7 @@
       top: 6.94vh;
       left: 81.44vw;
       width: 16.60vw;
-      height: 85.0vh;
+      height: 74.0vh;
       display: flex;
       flex-direction: column;
       overflow: visible;
@@ -95,7 +95,7 @@
     /* ── Column Headers (Team | Kills | Alive) ──────────────── */
     #colHeaders {
       display: grid;
-      grid-template-columns: 1fr 2.5vw 4.5vw;
+      grid-template-columns: 5.66vw 3.42vw 7.52vw;
       padding: 0;
       height: 4.51vh;
       border-bottom: none;
@@ -131,7 +131,7 @@
 
     .team-row {
       display: grid;
-      grid-template-columns: 1fr 2.5vw 4.5vw;
+      grid-template-columns: 5.66vw 3.42vw 7.52vw;
       height: 4.69vh; /* Exact 27px height per row to align with graphic grid lines */
       padding: 0;
       align-items: center;
@@ -201,16 +201,16 @@
       text-shadow: 0 0 8px rgba(255, 23, 68, 0.6);
     }
 
-    /* ── Footer Stats ──────────────────────────────────────────────── */
     #panelFooter {
-      border-top: none;
-      padding: 0;
+      position: absolute;
+      bottom: 4.8vh; /* Center vertically inside the background graphic's footer area */
+      left: 81.44vw;
+      width: 16.60vw;
       height: 5.2vh;
       display: flex;
       justify-content: space-between;
       align-items: center;
       background: transparent;
-      flex-shrink: 0;
     }
 
     #aliveCount {
@@ -821,11 +821,11 @@
       </div>
 
       <div id="teamList"></div>
+    </div>
 
-      <div id="panelFooter">
-        <div id="aliveCount">—</div>
-        <div id="elimCount">—</div>
-      </div>
+    <div id="panelFooter">
+      <div id="aliveCount">—</div>
+      <div id="elimCount">—</div>
     </div>
   </div>
 
