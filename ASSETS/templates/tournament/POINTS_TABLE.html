@@ -354,6 +354,20 @@
           }
         }
 
+        // Find which match columns actually have scores > 0 for any team
+        const playedCols = new Set();
+        matchCols.forEach(colIdx => {
+          let colSum = 0;
+          for (const row of rows) {
+            if (!row || row.length <= colIdx) continue;
+            const val = parseInt(row[colIdx].trim() || '0', 10) || 0;
+            colSum += val;
+          }
+          if (colSum > 0) {
+            playedCols.add(colIdx);
+          }
+        });
+
         const teams = [];
         for (const row of rows) {
           if (!row || row.length < 2) continue;
@@ -367,9 +381,9 @@
           if (matchesMap[name.toLowerCase()] !== undefined) {
             matches = matchesMap[name.toLowerCase()];
           } else {
-            // Fallback: count non-empty cells in match columns M1-M6
+            // Fallback: count columns that actually had scores > 0 across any team
             matchCols.forEach(idx => {
-              if (row[idx] !== undefined && row[idx].trim() !== '') {
+              if (playedCols.has(idx)) {
                 matches++;
               }
             });
