@@ -127,18 +127,21 @@ router.get('/tournament/standings', async (req, res) => {
     let ptTeamIdx = -1, ptPointsIdx = -1;
     if (ptHeaderRow) {
       if (mode === 'Final Stage') {
+        // Must match "Total Points" (both words) — bare "Points" columns (S, Z) must be ignored
+        // Keep overwriting so we land on the LAST "Total Points" = Column P (idx 15)
         ptHeaderRow.forEach((c, i) => {
           const l = c.toLowerCase().trim();
           if (ptTeamIdx === -1 && ['team','teams','team name','teamname'].includes(l)) ptTeamIdx = i;
-          if ((l.includes('total') || l.includes('points') || l === 'pts') && !l.includes('kill') && !l.includes('match')) {
-            ptPointsIdx = i; // Keep overwriting to get the last one (Column P for Finals)
+          if (l.includes('total') && l.includes('points') && !l.includes('kill') && !l.includes('match')) {
+            ptPointsIdx = i;
           }
         });
       } else {
+        // Group Stage: first "Total Points" column = Column H (idx 7)
         ptHeaderRow.forEach((c, i) => {
           const l = c.toLowerCase().trim();
           if (ptTeamIdx === -1 && ['team','teams','team name','teamname'].includes(l)) ptTeamIdx = i;
-          else if (ptPointsIdx === -1 && (l.includes('total') || l.includes('points') || l === 'pts') && !l.includes('kill') && !l.includes('match')) ptPointsIdx = i;
+          else if (ptPointsIdx === -1 && l.includes('total') && l.includes('points') && !l.includes('kill') && !l.includes('match')) ptPointsIdx = i;
         });
       }
     }
