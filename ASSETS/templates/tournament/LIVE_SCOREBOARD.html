@@ -202,7 +202,7 @@
 
     #panelFooter {
       position: absolute;
-      bottom: 4.4vh; /* Vertically centered inside the clean footer area of the graphic */
+      bottom: 4.3vh; /* Vertically centered inside the clean footer area of the graphic */
       left: 81.44vw;
       width: 16.60vw;
       height: 3.5vh;
@@ -210,6 +210,8 @@
       justify-content: space-between;
       align-items: center;
       background: transparent;
+      padding: 0 0.8vw; /* Pull text in from the gold borders */
+      box-sizing: border-box; /* Include padding in the width calculation */
     }
 
     #aliveCountContainer, #elimCountContainer {
@@ -219,26 +221,36 @@
     }
 
     .footer-label {
-      font-size: 0.72vw; /* Smaller text label as requested */
+      font-size: 0.68vw; /* Slightly smaller label to fit perfectly */
       font-weight: 700;
       color: #ffa040;
       letter-spacing: 0.5px;
       text-transform: uppercase;
       font-family: 'Orbitron', sans-serif;
+      display: flex;
+      align-items: center;
+    }
+
+    .footer-icon {
+      font-size: 0.75vw;
+      margin-right: 3px;
+      font-weight: bold;
     }
 
     #aliveCount {
-      font-size: 0.9vw; /* Bold number */
+      font-size: 0.85vw; /* Bold number */
       font-weight: 900;
       color: #ffa040;
       text-shadow: 0 0 8px rgba(255, 160, 64, 0.6);
+      margin-left: 2px;
     }
 
     #elimCount {
-      font-size: 0.9vw; /* Bold number */
+      font-size: 0.85vw; /* Bold number */
       font-weight: 900;
       color: #ffa040;
       text-shadow: 0 0 8px rgba(255, 160, 64, 0.6);
+      margin-left: 2px;
     }
 
     /* ── Elimination Centre Banner Popup ───────────────────────────── */
@@ -837,11 +849,11 @@
 
     <div id="panelFooter">
       <div id="aliveCountContainer">
-        <span class="footer-label">✓ ALIVE</span>
+        <span class="footer-label"><span class="footer-icon">✓</span> ALIVE</span>
         <span id="aliveCount">—</span>
       </div>
       <div id="elimCountContainer">
-        <span class="footer-label">✖ ELIMINATED</span>
+        <span class="footer-label"><span class="footer-icon">X</span> ELIMINATED</span>
         <span id="elimCount">—</span>
       </div>
     </div>
