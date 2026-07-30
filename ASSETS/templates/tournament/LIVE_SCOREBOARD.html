@@ -415,9 +415,20 @@
       let modeVal = e('f1') ? e('f1').innerText.trim() : 'Live Match';
       currentMode = modeVal || 'Live Match';
 
-      // 2. Read both CSV URLs
+      // 2. Read live CSV URL
       liveCsvUrl = (e('f0') ? e('f0').innerText.trim() : '') || DEFAULT_CSV_URL;
-      standingsCsvUrl = (e('f2') ? e('f2').innerText.trim() : '') || liveCsvUrl;
+
+      // 3. Smart Standings CSV URL detection:
+      // If f2 is provided, use it. Otherwise, extract sheetId from liveCsvUrl and target the TotalPoints tab (GID: 785807032).
+      let f2Val = e('f2') ? e('f2').innerText.trim() : '';
+      let sheetId = extractSheetId(liveCsvUrl);
+      if (f2Val) {
+        standingsCsvUrl = f2Val;
+      } else if (sheetId) {
+        standingsCsvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=785807032`;
+      } else {
+        standingsCsvUrl = liveCsvUrl;
+      }
 
       if (isRunning) {
         await fetchAndRender(false);
@@ -902,7 +913,7 @@
           "field": "f2",
           "ftype": "textfield",
           "title": "Overall Standings CSV URL / Embed Code",
-          "value": "https://docs.google.com/spreadsheets/d/1Lm61yqAgFFZRIOQxlsK_27s7B77vtOiYk9g_Uq-EZ_8/edit?gid=1030597977#gid=1030597977"
+          "value": "https://docs.google.com/spreadsheets/d/1Lm61yqAgFFZRIOQxlsK_27s7B77vtOiYk9g_Uq-EZ_8/edit?gid=785807032#gid=785807032"
         }
       ]
     };
