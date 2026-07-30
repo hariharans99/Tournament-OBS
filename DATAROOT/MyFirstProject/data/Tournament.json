@@ -1,7 +1,7 @@
 {
   "warning": "Modifications done in the SPX will overwrite this file.",
   "copyright": "(c) 2020- SPX Graphics (https://spxgraphics.com)",
-  "updated": "2026-07-30T19:21:48.221Z",
+  "updated": "2026-07-30T19:38:24.173Z",
   "templates": [
     {
       "description": "Tournament Live Scoreboard (right panel)",
@@ -39,7 +39,7 @@
           "field": "f2",
           "ftype": "textfield",
           "title": "Overall Standings CSV URL / Embed Code",
-          "value": "https://docs.google.com/spreadsheets/d/1Lm61yqAgEFZRIOQxlsK_27s7B77vtOiYk9g_Uq-EZ_8/edit?userstoinvite=gninikhil6%40gmail.com&sharingaction=manageaccess&role=writer&gid=645808816#gid=645808816"
+          "value": "https://docs.google.com/spreadsheets/d/1Lm61yqAgEFZRIOQxlsK_27s7B77vtOiYk9g_Uq-EZ_8/edit?userstoinvite=gninikhil6%40gmail.com&sharingaction=manageaccess&role=writer&gid=785807032#gid=785807032"
         },
         {
           "field": "f3",
@@ -47,9 +47,18 @@
           "title": "Standings Mode",
           "value": "Final Stage",
           "items": [
-            {"value": "Group Stage", "text": "Group Stage"},
-            {"value": "Final Stage", "text": "Final Stage"},
-            {"value": "Group + Final", "text": "Group + Final"}
+            {
+              "value": "Group Stage",
+              "text": "Group Stage"
+            },
+            {
+              "value": "Final Stage",
+              "text": "Final Stage"
+            },
+            {
+              "value": "Group + Final",
+              "text": "Group + Final"
+            }
           ]
         }
       ],
@@ -72,13 +81,13 @@
           "field": "f0",
           "ftype": "textfield",
           "title": "Google Sheet CSV URL (TotalPoints tab)",
-          "value": "https://docs.google.com/spreadsheets/d/1Lm61yqAgEFZRIOQxlsK_27s7B77vtOiYk9g_Uq-EZ_8/edit?pli=1&gid=785807032#gid=785807032"
+          "value": "https://docs.google.com/spreadsheets/d/1Lm61yqAgEFZRIOQxlsK_27s7B77vtOiYk9g_Uq-EZ_8/edit?userstoinvite=gninikhil6%40gmail.com&sharingaction=manageaccess&role=writer&gid=785807032#gid=785807032"
         },
         {
           "field": "f1",
           "ftype": "textfield",
           "title": "Google Sheet CSV URL (Matchesplayed tab)",
-          "value": "https://docs.google.com/spreadsheets/d/1Lm61yqAgEFZRIOQxlsK_27s7B77vtOiYk9g_Uq-EZ_8/edit?pli=1&gid=833022830#gid=833022830"
+          "value": "https://docs.google.com/spreadsheets/d/1Lm61yqAgEFZRIOQxlsK_27s7B77vtOiYk9g_Uq-EZ_8/edit?userstoinvite=gninikhil6%40gmail.com&sharingaction=manageaccess&role=writer&gid=785807032#gid=785807032"
         },
         {
           "field": "f2",
@@ -86,13 +95,22 @@
           "title": "Standings Mode",
           "value": "Group Stage",
           "items": [
-            {"value": "Group Stage", "text": "Group Stage"},
-            {"value": "Final Stage", "text": "Final Stage"},
-            {"value": "Group + Final", "text": "Group + Final"}
+            {
+              "value": "Group Stage",
+              "text": "Group Stage"
+            },
+            {
+              "value": "Final Stage",
+              "text": "Final Stage"
+            },
+            {
+              "value": "Group + Final",
+              "text": "Group + Final"
+            }
           ]
         }
       ],
-      "onair": "true",
+      "onair": "false",
       "imported": "1773083291300",
       "relpath": "/tournament/POINTS_TABLE.html",
       "itemID": "1773083297002"
