@@ -333,11 +333,13 @@
 
         // Map team name -> matches played count
         const matchesMap = {};
+        // Map team name -> total kills count
+        const killsMap = {};
 
         matchTexts.forEach(text => {
           if (!text) return;
           const mRows = parseCSV(text);
-          let mTeamIdx = -1, mPosIdx = -1;
+          let mTeamIdx = -1, mPosIdx = -1, mKillsIdx = -1;
 
           // Find header row in this match sheet
           for (const r of mRows) {
@@ -347,6 +349,7 @@
                 const l = c.toLowerCase().trim();
                 if (['team','teams','team name','teamname'].includes(l)) mTeamIdx = i;
                 else if (['position eliminated','position','placement','eliminated'].includes(l)) mPosIdx = i;
+                else if (['kills','kill'].includes(l)) mKillsIdx = i;
               });
               break;
             }
@@ -355,15 +358,25 @@
           // Fallbacks if headers are not found
           if (mTeamIdx < 0) mTeamIdx = 1; // Col B
           if (mPosIdx < 0) mPosIdx = 6;  // Col G
+          if (mKillsIdx < 0) mKillsIdx = 3; // Col D
 
           mRows.forEach(r => {
             if (!r || r.length <= Math.max(mTeamIdx, mPosIdx)) return;
             const name = r[mTeamIdx].trim();
             if (!isValidTeam(name)) return;
+            
+            // Check matches played
             const posVal = r[mPosIdx].trim();
             if (posVal !== '') {
               const key = name.toLowerCase();
               matchesMap[key] = (matchesMap[key] || 0) + 1;
+            }
+
+            // Check and sum kills
+            if (mKillsIdx < r.length) {
+              const killsVal = parseInt(r[mKillsIdx].trim() || '0', 10) || 0;
+              const key = name.toLowerCase();
+              killsMap[key] = (killsMap[key] || 0) + killsVal;
             }
           });
         });
@@ -373,7 +386,11 @@
           if (!row || row.length < 2) continue;
           const name = (row[teamIdx] || '').trim();
           if (!isValidTeam(name)) continue;
-          const kills  = killsIdx  >= 0 ? (parseInt(row[killsIdx]  || '0', 10) || 0) : 0;
+
+          // Map kills from match sheets
+          const kills = killsMap[name.toLowerCase()] !== undefined ? killsMap[name.toLowerCase()] : 0;
+          
+          // Total points comes from TotalPoints sheet
           const points = pointsIdx >= 0 ? (parseInt(row[pointsIdx] || '0', 10) || 0) : 0;
 
           // Resolve Matches Played
