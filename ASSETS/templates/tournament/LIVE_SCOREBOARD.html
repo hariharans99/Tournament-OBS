@@ -216,10 +216,10 @@
 
     #panelFooter {
       position: absolute;
-      bottom: 4.17vh; /* Y=552px (4.17vh from bottom) aligns with the text baseline */
+      bottom: 3.8vh; /* Center vertically with the baseline of the footer text */
       left: 71.78vw;
       width: 27.44vw;
-      height: 3.0vh;
+      height: 2.0vh;
       display: flex;
       align-items: center;
       background: transparent;
@@ -230,7 +230,7 @@
     #aliveCount {
       position: absolute;
       left: 9.8vw;  /* Move next to the baked-in ALIVE text */
-      top: -0.4vh;  /* Adjust vertically to center with the text */
+      bottom: 0;    /* Align with text baseline */
       font-size: 0.95vw;
       font-weight: 900;
       color: #ffffff;
@@ -240,8 +240,8 @@
 
     #elimCount {
       position: absolute;
-      left: 26.2vw;  /* Move next to the baked-in ELIMINATED text, avoiding overlap */
-      top: -0.4vh;
+      left: 26.2vw;  /* Move next to the baked-in ELIMINATED text */
+      bottom: 0;     /* Align with text baseline */
       font-size: 0.95vw;
       font-weight: 900;
       color: #ffffff;
