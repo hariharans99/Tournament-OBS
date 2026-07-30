@@ -20,29 +20,37 @@
     /* ── Main Scoreboard Panel (Right Side) ────────────────────────── */
     #scorePanel {
       position: absolute;
-      top: 2vh;
-      right: 0.5vw;
-      transform: translateX(120%);
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      transform: translateX(100vw);
       opacity: 0;
-      width: 50.5vw;
-      height: 96vh;
       background: url('/media/scoreboard_bg.png') no-repeat;
-      background-size: 198.06% 100%;
-      background-position: right top;
+      background-size: 100% 100%;
+      background-position: center;
+      pointer-events: none;
+      display: block; /* No longer flex */
+      overflow: hidden;
+    }
+
+    /* ── Inner content container aligned over the panel graphic ── */
+    .panel-content {
+      position: absolute;
+      top: 13.5vh;
+      left: 80.2vw;
+      width: 18.4vw;
+      height: 80vh;
       display: flex;
       flex-direction: column;
       overflow: visible;
-      padding-top: 12.5vh; /* Push below peaking characters */
-      padding-left: 2.2vw;
-      padding-right: 2.2vw;
-      padding-bottom: 2.5vh;
     }
 
     /* ── Header ────────────────────────────────────────────────────── */
     #panelHeader {
       background: transparent;
       border-bottom: none;
-      padding: 0.8vh 0.5vw;
+      padding: 0.8vh 0;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -51,7 +59,7 @@
 
     #panelTitle {
       font-family: 'Orbitron', sans-serif;
-      font-size: 1.35vw;
+      font-size: 1.0vw;
       font-weight: 900;
       color: #ffa040;
       letter-spacing: 2px;
@@ -63,15 +71,15 @@
       display: flex;
       align-items: center;
       gap: 6px;
-      font-size: 0.9vw;
+      font-size: 0.7vw;
       font-weight: 700;
       color: #ffa040;
       letter-spacing: 1px;
     }
 
     #liveDot {
-      width: 0.6vw;
-      height: 0.6vw;
+      width: 0.5vw;
+      height: 0.5vw;
       background: #ff8800;
       border-radius: 50%;
       box-shadow: 0 0 8px #ff8800;
@@ -86,8 +94,8 @@
     /* ── Column Headers (Team | Kills | Alive) ──────────────── */
     #colHeaders {
       display: grid;
-      grid-template-columns: 1fr 6vw 10vw;
-      padding: 0.8vh 0.5vw;
+      grid-template-columns: 1fr 2.5vw 4.5vw;
+      padding: 0.8vh 0;
       border-bottom: none;
       background: transparent;
       flex-shrink: 0;
@@ -95,7 +103,7 @@
 
     .col-hdr {
       font-family: 'Orbitron', sans-serif;
-      font-size: 1.1vw;
+      font-size: 0.8vw;
       font-weight: 700;
       color: #ffa040;
       letter-spacing: 1.5px;
@@ -119,8 +127,8 @@
 
     .team-row {
       display: grid;
-      grid-template-columns: 1fr 6vw 10vw;
-      padding: 0.6vh 0.5vw;
+      grid-template-columns: 1fr 2.5vw 4.5vw;
+      padding: 0.6vh 0;
       align-items: center;
       border-bottom: 1px solid rgba(255, 100, 0, 0.08);
       transition: background 0.4s ease;
@@ -141,7 +149,7 @@
     }
 
     .team-name-cell {
-      font-size: 1.25vw;
+      font-size: 0.95vw;
       font-weight: 700;
       color: #eeeeee;
       letter-spacing: 0.4px;
@@ -157,7 +165,7 @@
     }
 
     .kills-cell, .points-cell, .alive-cell {
-      font-size: 1.2vw;
+      font-size: 0.9vw;
       font-weight: 700;
       text-align: center;
       font-family: 'Orbitron', sans-serif;
@@ -178,12 +186,12 @@
     .alive-cell {
       color: #ffffff;
       letter-spacing: 1px;
-      font-size: 1.05vw;
+      font-size: 0.85vw;
     }
 
     .alive-cell.zero {
       color: #ff1744;
-      font-size: 1.05vw;
+      font-size: 0.85vw;
       letter-spacing: 1px;
       text-shadow: 0 0 8px rgba(255, 23, 68, 0.6);
     }
@@ -191,7 +199,7 @@
     /* ── Footer Stats ──────────────────────────────────────────────── */
     #panelFooter {
       border-top: none;
-      padding: 1.2vh 0.5vw 0 0.5vw;
+      padding: 1.2vh 0 0 0;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -200,14 +208,14 @@
     }
 
     #aliveCount {
-      font-size: 1.15vw;
+      font-size: 0.85vw;
       color: #ffa040;
       font-weight: 700;
       letter-spacing: 1px;
     }
 
     #elimCount {
-      font-size: 1.15vw;
+      font-size: 0.85vw;
       color: #ffa040;
       font-weight: 700;
       letter-spacing: 1px;
@@ -788,26 +796,28 @@
 
   <!-- RIGHT SIDE SCOREBOARD PANEL -->
   <div id="scorePanel">
-    <div id="panelHeader">
-      <div id="panelTitle">🟠 LIVE SCOREBOARD</div>
-      <div id="liveIndicator">
-        <div id="liveDot"></div>
-        LIVE
+    <div class="panel-content">
+      <div id="panelHeader">
+        <div id="panelTitle">🟠 LIVE SCOREBOARD</div>
+        <div id="liveIndicator">
+          <div id="liveDot"></div>
+          LIVE
+        </div>
       </div>
-    </div>
 
-    <!-- 3 Columns: TEAM | KILLS | ALIVE -->
-    <div id="colHeaders">
-      <div class="col-hdr name">TEAM</div>
-      <div class="col-hdr">KILLS</div>
-      <div class="col-hdr">ALIVE</div>
-    </div>
+      <!-- 3 Columns: TEAM | KILLS | ALIVE -->
+      <div id="colHeaders">
+        <div class="col-hdr name">TEAM</div>
+        <div class="col-hdr">KILLS</div>
+        <div class="col-hdr">ALIVE</div>
+      </div>
 
-    <div id="teamList"></div>
+      <div id="teamList"></div>
 
-    <div id="panelFooter">
-      <div id="aliveCount">✓ ALIVE: —</div>
-      <div id="elimCount">X ELIMINATED: —</div>
+      <div id="panelFooter">
+        <div id="aliveCount">✓ ALIVE: —</div>
+        <div id="elimCount">X ELIMINATED: —</div>
+      </div>
     </div>
   </div>
 
