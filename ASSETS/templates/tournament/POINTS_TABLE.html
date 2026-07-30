@@ -30,7 +30,7 @@
     /* Positioned over the lower brownish area of the OBS layout */
     #tableWrapper {
       position: absolute;
-      top: 565px;
+      top: 560px;
       left: 25px;
       width: 1870px;
       height: 265px; /* 5 rows * 53px = 265px */
@@ -38,22 +38,29 @@
       flex-direction: column;
     }
 
-    /* ── Dual column header (hidden because it is baked into background image) ── */
+    /* ── Dual column header (absolutely positioned above the box) ── */
     #tableHeader {
-      display: none;
+      position: absolute;
+      top: 520px;
+      left: 25px;
+      width: 1870px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0 10px;
+      z-index: 10;
     }
 
     .hdr-half {
       display: grid;
       grid-template-columns: 80px 1fr 120px 120px;
       padding: 0 24px;
-      height: 24px;
+      height: 30px;
       align-items: center;
     }
 
     .hdr-cell {
       font-family: 'Orbitron', sans-serif;
-      font-size: 13px;
+      font-size: 15px;
       font-weight: 900;
       color: #ff8c00;
       text-transform: uppercase;
