@@ -1,7 +1,7 @@
 {
   "warning": "Modifications done in the SPX will overwrite this file.",
   "copyright": "(c) 2020- SPX Graphics (https://spxgraphics.com)",
-  "updated": "2026-07-30T09:20:07.460Z",
+  "updated": "2026-07-30T10:33:41.802Z",
   "templates": [
     {
       "description": "Tournament Live Scoreboard (right panel)",
@@ -17,13 +17,35 @@
           "field": "f0",
           "ftype": "textfield",
           "title": "Google Sheet CSV URL",
-          "value": "https://docs.google.com/spreadsheets/d/1Lm61yqAgEFZRIOQxlsK_27s7B77vtOiYk9g_Uq-EZ_8/edit?pli=1&gid=1030597977#gid=1030597977"
+          "value": "https://docs.google.com/spreadsheets/d/1Lm61yqAgEFZRIOQxlsK_27s7B77vtOiYk9g_Uq-EZ_8/edit?pli=1&gid=1897274994#gid=1897274994"
         }
       ],
-      "onair": "true",
+      "onair": "false",
       "imported": "1773083291300",
       "relpath": "/tournament/LIVE_SCOREBOARD.html",
       "itemID": "1773083297001"
+    },
+    {
+      "description": "Points Table – Top 20 (Rank | Team | Kills | Points)",
+      "playserver": "OVERLAY",
+      "playchannel": "1",
+      "playlayer": "3",
+      "webplayout": "3",
+      "out": "manual",
+      "dataformat": "json",
+      "uicolor": "3",
+      "DataFields": [
+        {
+          "field": "f0",
+          "ftype": "textfield",
+          "title": "Google Sheet CSV URL (TotalPoints tab)",
+          "value": "https://docs.google.com/spreadsheets/d/1Lm61yqAgEFZRIOQxlsK_27s7B77vtOiYk9g_Uq-EZ_8/edit?pli=1&gid=785807032#gid=785807032"
+        }
+      ],
+      "onair": "false",
+      "imported": "1773083291300",
+      "relpath": "/tournament/POINTS_TABLE.html",
+      "itemID": "1773083297002"
     }
   ],
   "project": "MyFirstProject",
