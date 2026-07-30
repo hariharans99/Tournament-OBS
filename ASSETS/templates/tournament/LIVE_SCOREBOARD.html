@@ -624,19 +624,22 @@
             if (hasTeam) { stHeaderRow = row; break; }
           }
 
-          let stTeamColIdx = 1;  // Default Column B
-          let stTotalColIdx = 8; // Default Column I
+          let stTeamColIdx = -1;
+          let stTotalColIdx = -1;
 
           if (stHeaderRow) {
             stHeaderRow.forEach((cell, idx) => {
               let c = cell.toLowerCase().trim();
-              if (c === 'team' || c === 'teams' || c === 'team name' || c === 'teamname') {
+              if (stTeamColIdx === -1 && (c === 'team' || c === 'teams' || c === 'team name' || c === 'teamname')) {
                 stTeamColIdx = idx;
-              } else if ((c.includes('total') || c.includes('points') || c === 'pts') && !c.includes('kill') && !c.includes('match')) {
+              } else if (stTotalColIdx === -1 && (c.includes('total') || c.includes('points') || c === 'pts') && !c.includes('kill') && !c.includes('match')) {
                 stTotalColIdx = idx;
               }
             });
           }
+
+          if (stTeamColIdx === -1) stTeamColIdx = 1;
+          if (stTotalColIdx === -1) stTotalColIdx = 8;
 
           for (let row of standingsRows) {
             if (!row || row.length < 2) continue;
