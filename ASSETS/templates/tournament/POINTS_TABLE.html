@@ -260,23 +260,23 @@
 
     async function runTemplateUpdate() {
       const csvUrl = e('f0') ? e('f0').innerText.trim() : '';
-      const matchesUrl = e('f1') ? e('f1').innerText.trim() : '';
-      if (isRunning) { await fetchAndRender(csvUrl, matchesUrl, false); return; }
+      const mode = e('f2') ? e('f2').innerText.trim() : 'Group Stage';
+      if (isRunning) { await fetchAndRender(csvUrl, mode, false); return; }
       isRunning = true;
       currentIndex = 0;
-      await fetchAndRender(csvUrl, matchesUrl, true);
+      await fetchAndRender(csvUrl, mode, true);
       isInitialized = true;
       showPanel();
-      scheduleRefresh(csvUrl, matchesUrl);
+      scheduleRefresh(csvUrl, mode);
       startPageRotation();
     }
 
-    function scheduleRefresh(url, matchesUrl) {
+    function scheduleRefresh(url, mode) {
       if (!isRunning) return;
       refreshTimer = setTimeout(async () => {
         if (!isRunning) return;
-        await fetchAndRender(url, matchesUrl, false);
-        scheduleRefresh(url, matchesUrl);
+        await fetchAndRender(url, mode, false);
+        scheduleRefresh(url, mode);
       }, REFRESH_MS);
     }
 
@@ -296,7 +296,7 @@
       renderCurrentPage(true);
     }
 
-    async function fetchAndRender(csvUrl, matchesUrl, isFirst) {
+    async function fetchAndRender(csvUrl, mode, isFirst) {
       try {
         const pointsText = await fetchCsv(csvUrl);
         if (!pointsText) { console.warn('Points Table: no CSV'); return; }
@@ -309,22 +309,34 @@
           if (row.some(c => ['team','teams','team name'].includes(c.toLowerCase().trim()))) { headerRow = row; break; }
         }
 
-        let teamIdx = -1, killsIdx = -1, pointsIdx = -1;
+        let teamIdx = -1, pointsIdx = -1;
         if (headerRow) {
-          headerRow.forEach((c, i) => {
-            const l = c.toLowerCase().trim();
-            if (teamIdx === -1 && ['team','teams','team name','teamname'].includes(l)) teamIdx = i;
-            else if (killsIdx === -1 && ['kills','kill'].includes(l)) killsIdx = i;
-            else if (pointsIdx === -1 && l.includes('total') && !l.includes('kill') && !l.includes('match')) pointsIdx = i;
-            else if (pointsIdx === -1 && ['points','pts'].includes(l)) pointsIdx = i;
-          });
+          if (mode === 'Final Stage') {
+            // In Final Stage, Team name is Column B, and Total Points is the LAST Total Points column (Column P)
+            headerRow.forEach((c, i) => {
+              const l = c.toLowerCase().trim();
+              if (teamIdx === -1 && ['team','teams','team name','teamname'].includes(l)) teamIdx = i;
+              if ((l.includes('total') || l.includes('points') || l === 'pts') && !l.includes('kill') && !l.includes('match')) {
+                pointsIdx = i; // Will keep overwriting to get the last one (Column P)
+              }
+            });
+          } else {
+            // Group Stage (Column B & Column H)
+            headerRow.forEach((c, i) => {
+              const l = c.toLowerCase().trim();
+              if (teamIdx === -1 && ['team','teams','team name','teamname'].includes(l)) teamIdx = i;
+              else if (pointsIdx === -1 && (l.includes('total') || l.includes('points') || l === 'pts') && !l.includes('kill') && !l.includes('match')) pointsIdx = i;
+            });
+          }
         }
         if (teamIdx === -1) teamIdx = 1;
-        if (pointsIdx === -1) pointsIdx = 8; // Default Column H (index 8)
+        if (pointsIdx === -1) pointsIdx = (mode === 'Final Stage') ? 15 : 8;
 
-        // Fetch GIDs for Match 1 to Match 6 in parallel from the same spreadsheet
+        // Fetch match GIDs based on mode
         const sheetId = extractSheetId(csvUrl);
-        const matchGids = ['1030597977', '1897274994', '528606447', '1956996928', '20693017', '645808816'];
+        const matchGids = (mode === 'Final Stage') 
+          ? ['20693017', '645808816', '694167234']  // Final 1, Final 2, Final 3
+          : ['1030597977', '1897274994', '528606447', '1956996928']; // GroupA 1-2, GroupB 1-2
         
         const matchTexts = await Promise.all(
           matchGids.map(gid => {
@@ -488,6 +500,16 @@
           "ftype": "textfield",
           "title": "Google Sheet CSV URL (Matchesplayed tab)",
           "value": "https://docs.google.com/spreadsheets/d/1Lm61yqAgEFZRIOQxlsK_27s7B77vtOiYk9g_Uq-EZ_8/edit?pli=1&gid=833022830#gid=833022830"
+        },
+        {
+          "field": "f2",
+          "ftype": "select",
+          "title": "Standings Mode",
+          "value": "Group Stage",
+          "items": [
+            {"value": "Group Stage", "text": "Group Stage"},
+            {"value": "Final Stage", "text": "Final Stage"}
+          ]
         }
       ]
     };
@@ -497,6 +519,7 @@
 
   <div id="f0" style="display:none;"></div>
   <div id="f1" style="display:none;"></div>
+  <div id="f2" style="display:none;"></div>
 
   <div id="pointsPanel">
     <!-- Dual column headers positioned absolutely above the wrapper -->
