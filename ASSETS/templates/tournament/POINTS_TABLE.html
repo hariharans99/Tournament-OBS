@@ -30,10 +30,10 @@
     /* Positioned over the lower brownish area of the OBS layout */
     #tableWrapper {
       position: absolute;
-      top: 560px;
+      top: 520px;
       left: 25px;
       width: 1870px;
-      height: 265px; /* 5 rows * 53px = 265px */
+      height: 496px; /* 8 rows * 62px = 496px */
       display: flex;
       flex-direction: column;
     }
@@ -41,7 +41,7 @@
     /* ── Dual column header (absolutely positioned above the box) ── */
     #tableHeader {
       position: absolute;
-      top: 520px;
+      top: 485px;
       left: 25px;
       width: 1870px;
       display: grid;
@@ -90,7 +90,7 @@
       display: grid;
       grid-template-columns: 80px 1fr 120px 120px;
       align-items: center;
-      height: 53px;
+      height: 62px;
       padding: 0 24px;
       opacity: 0;
       transform: translateX(-40px);
@@ -278,8 +278,8 @@
     }
 
     function showNextPage() {
-      if (allTeams.length <= 10) return; // No pagination if 10 or fewer teams
-      currentIndex += 10;
+      if (allTeams.length <= 15) return; // No pagination if 15 or fewer teams
+      currentIndex += 15;
       if (currentIndex >= allTeams.length) {
         currentIndex = 0;
       }
@@ -334,20 +334,20 @@
       e('colLeft').innerHTML  = '';
       e('colRight').innerHTML = '';
 
-      const leftTeams = allTeams.slice(currentIndex, currentIndex + 5);
-      const rightTeams = allTeams.slice(currentIndex + 5, currentIndex + 10);
+      const leftTeams = allTeams.slice(currentIndex, currentIndex + 8);
+      const rightTeams = allTeams.slice(currentIndex + 8, currentIndex + 15);
 
       leftTeams.forEach(t  => e('colLeft').appendChild(buildRow(t)));
       rightTeams.forEach(t => e('colRight').appendChild(buildRow(t)));
 
       if (animate) {
-        // Staggered run-down: rows slide in from left sequentially
+        // Staggered run-down: rows slide in sequentially
         anime({
           targets:    '.pt-row',
           opacity:    [0, 1],
           translateX: ['-40px', '0px'],
           duration:   380,
-          delay:      anime.stagger(50, { start: 100 }),
+          delay:      anime.stagger(40, { start: 80 }),
           easing:     'easeOutCubic'
         });
       } else {
