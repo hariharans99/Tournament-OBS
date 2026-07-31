@@ -642,7 +642,10 @@
         try {
           const sheetId = extractSheetId(liveCsvUrl) || extractSheetId(standingsCsvUrl);
           const stMode = (e('f3') ? e('f3').innerText.trim() : 'Group + Final') || 'Group + Final';
-          const gid = extractGid(standingsCsvUrl) || '0';
+          let gid = extractGid(standingsCsvUrl) || '0';
+          if (!gid || gid === '0' || gid === '1030597977' || gid === '1980812903' || gid === '528606447') {
+            gid = (stMode === 'Group Stage') ? '785807032' : '0';
+          }
           if (sheetId) {
             const apiUrl = `/api/tournament/standings?sheetId=${encodeURIComponent(sheetId)}&mode=${encodeURIComponent(stMode)}&gid=${encodeURIComponent(gid)}`;
             const stRes = await fetch(apiUrl);

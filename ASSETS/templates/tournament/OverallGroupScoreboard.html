@@ -318,9 +318,9 @@
         let headerIdx = -1;
         for (let i = 0; i < rows.length; i++) {
           let row = rows[i];
-          if (!row || row.length < 12) continue; // Must be wide enough for column L (index 11)
+          if (!row || row.length < 10) continue; // Must be wide enough for column J (index 9)
           let hasTeam = row.some((cell, idx) => {
-            if (!cell || idx < 11) return false;
+            if (!cell || idx < 6 || idx > 9) return false;
             let c = cell.toLowerCase().trim();
             return c === 'team' || c === 'teams' || c === 'team name';
           });
@@ -331,14 +331,14 @@
           }
         }
 
-        let teamColIdx = 11; // Default column fallbacks (Columns L to O)
-        let matchesColIdx = 12;
-        let pointsColIdx = 13;
-        let killsColIdx = 14;
+        let teamColIdx = 6; // Default column fallbacks (Columns G to J)
+        let matchesColIdx = 9;
+        let pointsColIdx = 7;
+        let killsColIdx = 8;
 
         if (headerRow) {
           headerRow.forEach((cell, idx) => {
-            if (!cell || idx < 11) return;
+            if (!cell || idx < 6 || idx > 9) return;
             let c = cell.toLowerCase().trim();
             if (c === 'team' || c === 'teams' || c === 'team name' || c === 'teamname') teamColIdx = idx;
             else if (c.includes('match') || c.includes('played')) matchesColIdx = idx;

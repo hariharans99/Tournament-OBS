@@ -176,7 +176,7 @@ router.get('/tournament/standings', async (req, res) => {
     for (let i = 0; i < ptHeaderRow.length; i++) {
       const cell = ptHeaderRow[i].toLowerCase().trim();
       if (cell === 'total points' || cell === 'points') {
-        pointsIdx = i;
+        if (pointsIdx === -1) pointsIdx = i;
       }
     }
 
@@ -196,9 +196,9 @@ router.get('/tournament/standings', async (req, res) => {
       const cell = ptHeaderRow[i].toLowerCase().trim();
       const l = cell.toLowerCase();
       if (l === 'totalkills' || l === 'total kills' || l === 'kills' || l === 'kill') {
-        killsIdx = i;
+        if (killsIdx === -1) killsIdx = i;
       } else if (l === 'total matches' || l === 'matches' || l === 'matches played') {
-        matchesIdx = i;
+        if (matchesIdx === -1) matchesIdx = i;
       }
     }
 
