@@ -1,7 +1,7 @@
 {
   "templates": [
     {
-      "description": "Tournament Live Scoreboard (right panel)",
+      "description": "GroupMatchScoreboard",
       "playserver": "OVERLAY",
       "playchannel": "1",
       "playlayer": "2",
@@ -13,8 +13,8 @@
         {
           "field": "f0",
           "ftype": "textfield",
-          "title": "Google Sheet CSV URL / Embed Code",
-          "value": "https://docs.google.com/spreadsheets/d/1Lm61yqAgFFZRIOQxlsK_27s7B77vtOiYk9g_Uq-EZ_8/edit?gid=1030597977#gid=1030597977"
+          "title": "Google Sheet CSV URL",
+          "value": "https://docs.google.com/spreadsheets/d/1Lm61yqAgEFZRIOQxlsK_27s7B77vtOiYk9g_Uq-EZ_8/edit?pli=1&gid=1030597977#gid=1030597977"
         },
         {
           "field": "f1",
@@ -22,47 +22,130 @@
           "title": "Scoreboard Mode",
           "value": "Live Match",
           "items": [
-            {"value": "Live Match", "text": "Live Match"},
-            {"value": "Overall Standings", "text": "Overall Standings"}
+            {
+              "value": "Live Match",
+              "text": "Live Match"
+            },
+            {
+              "value": "Overall Standings",
+              "text": "Overall Standings"
+            }
           ]
         },
         {
           "field": "f2",
           "ftype": "textfield",
           "title": "Overall Standings CSV URL / Embed Code",
-          "value": "https://docs.google.com/spreadsheets/d/1Lm61yqAgFFZRIOQxlsK_27s7B77vtOiYk9g_Uq-EZ_8/edit?gid=1030597977#gid=1030597977"
+          "value": "https://docs.google.com/spreadsheets/d/1Lm61yqAgEFZRIOQxlsK_27s7B77vtOiYk9g_Uq-EZ_8/edit?pli=1&gid=1030597977#gid=1030597977"
+        },
+        {
+          "field": "f3",
+          "ftype": "select",
+          "title": "Standings Mode",
+          "value": "Group + Final",
+          "items": [
+            {
+              "value": "Group Stage",
+              "text": "Group Stage"
+            },
+            {
+              "value": "Final Stage",
+              "text": "Final Stage"
+            },
+            {
+              "value": "Group + Final",
+              "text": "Group + Final"
+            }
+          ]
         }
       ],
       "onair": "false",
       "imported": "1773083291300",
-      "relpath": "/tournament/LIVE_SCOREBOARD.html"
+      "relpath": "/tournament/GroupMatchScoreboard.html"
     },
     {
-      "description": "Tournament Team Elimination Banner",
+      "description": "FinalsMatchScoreboard",
       "playserver": "OVERLAY",
       "playchannel": "1",
-      "playlayer": "1",
-      "webplayout": "1",
+      "playlayer": "2",
+      "webplayout": "2",
       "out": "manual",
       "dataformat": "json",
-      "uicolor": "1",
+      "uicolor": "3",
       "DataFields": [
         {
           "field": "f0",
           "ftype": "textfield",
           "title": "Google Sheet CSV URL",
-          "value": "https://docs.google.com/spreadsheets/d/1Lm61yqAgFFZRIOQxlsK_27s7B77vtOiYk9g_Uq-EZ_8/edit?gid=1030597977#gid=1030597977"
+          "value": "https://docs.google.com/spreadsheets/d/1R-X7kneYei1PvJDlq8NPTgE5lPfmK7aT3IQvWJJHv7U/edit?gid=233826944#gid=233826944"
         },
         {
           "field": "f1",
+          "ftype": "select",
+          "title": "Scoreboard Mode",
+          "value": "Live Match",
+          "items": [
+            {
+              "value": "Live Match",
+              "text": "Live Match"
+            },
+            {
+              "value": "Overall Standings",
+              "text": "Overall Standings"
+            }
+          ]
+        },
+        {
+          "field": "f2",
           "ftype": "textfield",
-          "title": "Team Name",
-          "value": "Shadow Legends"
+          "title": "Overall Standings CSV URL / Embed Code",
+          "value": "https://docs.google.com/spreadsheets/d/1R-X7kneYei1PvJDlq8NPTgE5lPfmK7aT3IQvWJJHv7U/edit?gid=0#gid=0"
+        },
+        {
+          "field": "f3",
+          "ftype": "select",
+          "title": "Standings Mode",
+          "value": "Group Stage",
+          "items": [
+            {
+              "value": "Group Stage",
+              "text": "Group Stage"
+            },
+            {
+              "value": "Final Stage",
+              "text": "Final Stage"
+            },
+            {
+              "value": "Group + Final",
+              "text": "Group + Final"
+            }
+          ]
         }
       ],
       "onair": "false",
-      "imported": "1773083291282",
-      "relpath": "/tournament/ELIMINATION_BANNER.html"
+      "imported": "1773083291300",
+      "relpath": "/tournament/FinalsMatchScoreboard.html"
+    },
+    {
+      "description": "OverallScoreboard",
+      "playserver": "OVERLAY",
+      "playchannel": "1",
+      "playlayer": "3",
+      "webplayout": "3",
+      "out": "manual",
+      "dataformat": "json",
+      "uicolor": "4",
+      "DataFields": [
+        {
+          "field": "f0",
+          "ftype": "textfield",
+          "title": "Google Sheet CSV URL",
+          "value": "https://docs.google.com/spreadsheets/d/1zDHkiEB6TCCDxx3CeqUtXpPnnanVIoY5O1F82qttONw/edit?usp=sharing"
+        }
+      ],
+      "onair": "false",
+      "imported": "1773083291300",
+      "relpath": "/tournament/OverallScoreboard.html"
     }
   ],
   "general": {
@@ -70,5 +153,5 @@
   },
   "warning": "Modifications done in the SPX will overwrite this file.",
   "copyright": "(c) 2020- SPX Graphics (https://spxgraphics.com)",
-  "updated": "2026-07-29T17:54:36.992Z"
+  "updated": "2026-07-31T11:14:00.000Z"
 }
