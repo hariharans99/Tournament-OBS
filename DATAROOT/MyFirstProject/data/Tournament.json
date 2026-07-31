@@ -1,7 +1,7 @@
 {
   "warning": "Modifications done in the SPX will overwrite this file.",
   "copyright": "(c) 2020- SPX Graphics (https://spxgraphics.com)",
-  "updated": "2026-07-31T09:03:06.351Z",
+  "updated": "2026-07-31T11:13:00.000Z",
   "templates": [
     {
       "description": "GroupMatchScoreboard",
@@ -23,7 +23,7 @@
           "field": "f1",
           "ftype": "select",
           "title": "Scoreboard Mode",
-          "value": "Overall Standings",
+          "value": "Live Match",
           "items": [
             {
               "value": "Live Match",
@@ -87,7 +87,7 @@
           "field": "f1",
           "ftype": "select",
           "title": "Scoreboard Mode",
-          "value": "Overall Standings",
+          "value": "Live Match",
           "items": [
             {
               "value": "Live Match",
@@ -103,7 +103,7 @@
           "field": "f2",
           "ftype": "textfield",
           "title": "Overall Standings CSV URL / Embed Code",
-          "value": "https://docs.google.com/spreadsheets/d/e/2PACX-1vSSeFaOE3EofsUHpiuxUyx2joR-Bbvcet-puHEbyyTM6HjpUlUFG8zoF5wflyoMj0fgOqcML3gUXxsc/pub?output=csv&gid=0"
+          "value": "https://docs.google.com/spreadsheets/d/1R-X7kneYei1PvJDlq8NPTgE5lPfmK7aT3IQvWJJHv7U/edit?gid=0#gid=0"
         },
         {
           "field": "f3",
@@ -130,6 +130,28 @@
       "imported": "1773083291300",
       "relpath": "/tournament/FinalsMatchScoreboard.html",
       "itemID": "1773083297003"
+    },
+    {
+      "description": "OverallScoreboard",
+      "playserver": "OVERLAY",
+      "playchannel": "1",
+      "playlayer": "3",
+      "webplayout": "3",
+      "out": "manual",
+      "dataformat": "json",
+      "uicolor": "4",
+      "DataFields": [
+        {
+          "field": "f0",
+          "ftype": "textfield",
+          "title": "Google Sheet CSV URL",
+          "value": "https://docs.google.com/spreadsheets/d/1zDHkiEB6TCCDxx3CeqUtXpPnnanVIoY5O1F82qttONw/edit?usp=sharing"
+        }
+      ],
+      "onair": "false",
+      "imported": "1773083291300",
+      "relpath": "/tournament/OverallScoreboard.html",
+      "itemID": "1773083297004"
     }
   ],
   "project": "MyFirstProject",

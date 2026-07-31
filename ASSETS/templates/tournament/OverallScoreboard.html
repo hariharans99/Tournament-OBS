@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Overall Standings Scoreboard</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet"/>
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      background: transparent;
+      font-family: 'Rajdhani', sans-serif;
+    }
+
+    #pointsPanel {
+      position: absolute;
+      top: 0; left: 0;
+      width: 1920px; height: 1080px;
+      opacity: 0;
+      pointer-events: none;
+      background: url('/media/points_table_bg.jpg') no-repeat;
+      background-size: 1920px 1080px;
+    }
+
+    /* Positioned over the lower brownish area of the OBS layout */
+    #tableWrapper {
+      position: absolute;
+      top: 545px;
+      left: 25px;
+      width: 1870px;
+      height: 464px; /* 8 rows * 58px = 464px */
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Dual column header (absolutely positioned above the box) ── */
+    #tableHeader {
+      position: absolute;
+      top: 505px;
+      left: 25px;
+      width: 1870px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0 10px;
+      z-index: 10;
+    }
+
+    .hdr-half {
+      display: grid;
+      grid-template-columns: 80px 1fr 100px 100px 100px;
+      padding: 0 24px;
+      height: 30px;
+      align-items: center;
+    }
+
+    .hdr-cell {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 15px;
+      font-weight: 900;
+      color: #ff8c00;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    .hdr-cell.center { text-align: center; }
+
+    /* ── Two-column team grid ── */
+    #teamColumns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0 10px;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .team-col {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      justify-content: flex-start;
+      gap: 8px; /* Balanced spacing between rows */
+    }
+
+    /* ── Team Row ── */
+    .pt-row {
+      display: grid;
+      grid-template-columns: 80px 1fr 100px 100px 100px;
+      align-items: center;
+      height: 54px;
+      padding: 0 24px;
+      opacity: 0;
+      transform: translateX(-40px);
+      position: relative;
+      background: rgba(20, 15, 10, 0.45);
+      border-radius: 4px;
+      border-left: 3px solid transparent;
+    }
+
+    .pt-row.rank-1 { border-left-color: #ffd700; background: rgba(255, 215, 0, 0.08) !important; }
+    .pt-row.rank-2 { border-left-color: #c0c0c0; background: rgba(192, 192, 192, 0.06) !important; }
+    .pt-row.rank-3 { border-left-color: #cd7f32; background: rgba(205, 127, 50, 0.06) !important; }
+
+    .rank-num {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 18px;
+      font-weight: 900;
+      text-align: center;
+      color: #ffffff;
+    }
+    .rank-num.rank-top3 {
+      font-size: 22px;
+    }
+
+    .team-name {
+      font-size: 20px;
+      font-weight: 700;
+      color: #eeeeee;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      padding-left: 10px;
+    }
+
+    .matches-val {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      text-align: center;
+      color: #00bcd4;
+      text-shadow: 0 0 8px rgba(0,188,212,0.4);
+    }
+
+    .kills-val {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      text-align: center;
+      color: #ffc107;
+      text-shadow: 0 0 8px rgba(255,193,7,0.4);
+    }
+
+    .points-val {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 20px;
+      font-weight: 900;
+      text-align: center;
+      color: #ffd700;
+      text-shadow: 0 0 8px rgba(255,215,0,0.5);
+    }
+  </style>
+
+  <script>
+    const REFRESH_MS      = 4000;  // Poll Google Sheet every 4 seconds
+    const PAGE_DURATION   = 8000;  // Rotate pages every 8 seconds (if > 14 teams)
+
+    let rawCsvUrl    = '';
+    let isRunning    = false;
+    let isInitialized = false;
+    let refreshTimer  = null;
+    let pageTimer     = null;
+    let allTeams      = [];
+    let currentIndex  = 0;
+
+    function e(id) { return document.getElementById(id); }
+
+    function extractSheetId(url) {
+      if (!url) return '';
+      let m = url.match(/\/d\/([a-zA-Z0-9-_]+)/);
+      if (m) return m[1];
+      m = url.match(/pub\?.*key=([a-zA-Z0-9-_]+)/);
+      if (m) return m[1];
+      if (url.startsWith('2PACX-')) return url;
+      return '';
+    }
+
+    function extractGid(url) {
+      if (!url) return '0';
+      const m = url.match(/[#&?]gid=([0-9]+)/);
+      return m ? m[1] : '0';
+    }
+
+    function cleanUrl(url) {
+      if (!url) return '';
+      return url.trim().replace(/^["']|["']$/g, '');
+    }
+
+    function isValidTeamName(name) {
+      if (!name || typeof name !== 'string') return false;
+      let trimmed = name.replace(/^["']|["']$/g, '').trim();
+      if (trimmed.length < 2 || trimmed.length > 40) return false;
+      let lower = trimmed.toLowerCase();
+
+      if (lower === 'teams' || lower === 'team name' || lower === 'teamname' || lower === 'team' || lower === 'status' || lower === 'kills' || lower === 'alive' || lower === 'position' || lower === 'points' || lower === 'total' || lower === 'total points' || lower === 'final board' || lower === 'total match') return false;
+
+      if (trimmed.includes('{') || trimmed.includes('}') || trimmed.includes('=') ||
+          trimmed.includes(';') || trimmed.includes(':') || trimmed.includes('#') ||
+          trimmed.includes('<') || trimmed.includes('>') || trimmed.includes('/') ||
+          lower.includes('function') || lower.includes('deleteis') ||
+          lower.includes('pageurl') || lower.includes('null') ||
+          lower.includes('body') || lower.includes('visited') || lower.includes('return')) {
+        return false;
+      }
+
+      return true;
+    }
+
+    function parseCSV(text) {
+      return text.split(/\r\n|\n/).map(line => {
+        const result = []; let inQ = false; let cur = '';
+        for (let i = 0; i < line.length; i++) {
+          const ch = line[i];
+          if (ch === '"') { inQ = !inQ; }
+          else if (ch === ',' && !inQ) { result.push(cur.trim()); cur = ''; }
+          else { cur += ch; }
+        }
+        result.push(cur.trim());
+        return result;
+      });
+    }
+
+    async function fetchCsv(rawUrl) {
+      if (!rawUrl) return '';
+      const sheetId = extractSheetId(rawUrl);
+      const gid     = extractGid(rawUrl);
+      let text = '';
+
+      if (sheetId) {
+        let exportUrl;
+        if (sheetId.startsWith('2PACX-')) {
+          exportUrl = `https://docs.google.com/spreadsheets/d/e/${sheetId}/pub?output=csv`;
+          if (gid && gid !== '0') exportUrl += `&gid=${gid}`;
+        } else {
+          exportUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${gid}`;
+        }
+        try {
+          const proxyRes = await fetch('/api/fetchUrl?url=' + encodeURIComponent(exportUrl));
+          if (proxyRes.ok) {
+            let tempText = await proxyRes.text();
+            if (tempText && !tempText.startsWith('<!DOCTYPE') && !tempText.startsWith('<html')) {
+              text = tempText;
+            }
+          }
+        } catch (errExport) {}
+      }
+
+      if (!text) {
+        try {
+          const proxyRes = await fetch('/api/fetchUrl?url=' + encodeURIComponent(cleanUrl(rawUrl)));
+          if (proxyRes.ok) {
+            text = await proxyRes.text();
+          }
+        } catch (errClean) {}
+      }
+
+      if (!text || text.startsWith('<!DOCTYPE') || text.startsWith('<html')) {
+        return '';
+      }
+      return text;
+    }
+
+    async function runTemplateUpdate() {
+      rawCsvUrl = e('f0') ? e('f0').innerText.trim() : '';
+      
+      if (isRunning) {
+        await fetchAndRender(false);
+        return;
+      }
+      isRunning = true;
+      currentIndex = 0;
+      await fetchAndRender(true);
+      isInitialized = true;
+      showPanel();
+      triggerNextPoll();
+      startPageRotation();
+    }
+
+    function triggerNextPoll() {
+      if (!isRunning) return;
+      refreshTimer = setTimeout(async () => {
+        if (!isRunning) return;
+        await fetchAndRender(false);
+        triggerNextPoll();
+      }, REFRESH_MS);
+    }
+
+    function startPageRotation() {
+      clearInterval(pageTimer);
+      pageTimer = setInterval(() => {
+        showNextPage();
+      }, PAGE_DURATION);
+    }
+
+    function showNextPage() {
+      if (allTeams.length <= 14) return; 
+      currentIndex += 14;
+      if (currentIndex >= allTeams.length) {
+        currentIndex = 0;
+      }
+      renderCurrentPage(true);
+    }
+
+    async function fetchAndRender(isFirstLoad) {
+      try {
+        const text = await fetchCsv(rawCsvUrl);
+        if (!text) {
+          console.warn('Could not fetch Overall Scoreboard CSV');
+          return;
+        }
+
+        const rows = parseCSV(text);
+        let headerRow = null;
+        let headerIdx = -1;
+        for (let i = 0; i < rows.length; i++) {
+          let row = rows[i];
+          if (!row || row.length < 2) continue;
+          let hasTeam = row.some(cell => {
+            if (!cell) return false;
+            let c = cell.toLowerCase().trim();
+            return c === 'team' || c === 'teams' || c === 'team name';
+          });
+          if (hasTeam) {
+            headerRow = row;
+            headerIdx = i;
+            break;
+          }
+        }
+
+        let teamColIdx = 2; // Default column fallbacks
+        let matchesColIdx = 3;
+        let killsColIdx = 4;
+        let pointsColIdx = 5;
+
+        if (headerRow) {
+          headerRow.forEach((cell, idx) => {
+            if (!cell) return;
+            let c = cell.toLowerCase().trim();
+            if (c === 'team' || c === 'teams' || c === 'team name' || c === 'teamname') teamColIdx = idx;
+            else if (c.includes('match') || c.includes('played')) matchesColIdx = idx;
+            else if (c.includes('kills') || c.includes('kill')) killsColIdx = idx;
+            else if (c.includes('points') || c.includes('pts')) pointsColIdx = idx;
+          });
+        }
+
+        const parsedTeams = [];
+        for (let i = headerIdx + 1; i < rows.length; i++) {
+          let row = rows[i];
+          if (!row || row.length <= Math.max(teamColIdx, pointsColIdx)) continue;
+          let name = (row[teamColIdx] || '').trim();
+          if (!isValidTeamName(name)) continue;
+
+          let matches = parseInt(row[matchesColIdx], 10) || 0;
+          let kills = parseInt(row[killsColIdx], 10) || 0;
+          let points = parseInt(row[pointsColIdx], 10) || 0;
+
+          parsedTeams.push({ name, matches, kills, points });
+        }
+
+        if (parsedTeams.length === 0) return;
+
+        // Sort overall standing by Points desc, Kills desc
+        parsedTeams.sort((a, b) => (b.points - a.points) || (b.kills - a.kills));
+        parsedTeams.forEach((t, i) => { t.rank = i + 1; });
+
+        allTeams = parsedTeams;
+        renderCurrentPage(isFirstLoad);
+
+      } catch (err) {
+        console.error('Error fetching/parsing Overall Scoreboard:', err);
+      }
+    }
+
+    function renderCurrentPage(animate) {
+      e('colLeft').innerHTML  = '';
+      e('colRight').innerHTML = '';
+
+      const leftTeams = allTeams.slice(currentIndex, currentIndex + 7);
+      const rightTeams = allTeams.slice(currentIndex + 7, currentIndex + 14);
+
+      leftTeams.forEach(t  => e('colLeft').appendChild(buildRow(t)));
+      rightTeams.forEach(t => e('colRight').appendChild(buildRow(t)));
+
+      if (animate) {
+        anime({
+          targets:    '.pt-row',
+          opacity:    [0, 1],
+          translateX: ['-40px', '0px'],
+          duration:   380,
+          delay:      anime.stagger(40, { start: 80 }),
+          easing:     'easeOutCubic'
+        });
+      } else {
+        document.querySelectorAll('.pt-row').forEach(r => {
+          r.style.opacity   = '1';
+          r.style.transform = 'translateX(0)';
+        });
+      }
+    }
+
+    function buildRow(t) {
+      const row = document.createElement('div');
+      row.className = 'pt-row' + (t.rank <= 3 ? ' rank-' + t.rank : '');
+      row.id = 'ptrow_' + t.rank;
+      const medal = t.rank === 1 ? '🥇' : t.rank === 2 ? '🥈' : t.rank === 3 ? '🥉' : '#' + t.rank;
+      row.innerHTML = `
+        <div class="rank-num ${t.rank <= 3 ? 'rank-top3' : ''}">${medal}</div>
+        <div class="team-name" title="${t.name}">${t.name}</div>
+        <div class="matches-val">${t.matches}</div>
+        <div class="kills-val">${t.kills}</div>
+        <div class="points-val">${t.points}</div>
+      `;
+      return row;
+    }
+
+    function showPanel() {
+      anime({ targets: '#pointsPanel', opacity: [0, 1], duration: 600, easing: 'easeOutCubic' });
+    }
+
+    function hidePanel() {
+      clearTimeout(refreshTimer);
+      clearInterval(pageTimer);
+      isRunning = false; isInitialized = false;
+      anime({ targets: '#pointsPanel', opacity: [1, 0], duration: 400, easing: 'easeInCubic' });
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => { if (!isInitialized) runTemplateUpdate(); }, 300);
+    });
+
+    // SPX Graphics Template Definition
+    window.SPXGCTemplateDefinition = {
+      "description": "OverallScoreboard",
+      "playserver":  "OVERLAY",
+      "playchannel": "1",
+      "playlayer":   "3",
+      "webplayout":  "3",
+      "out":         "manual",
+      "DataFields": [
+        {
+          "field": "f0",
+          "ftype": "textfield",
+          "title": "Google Sheet CSV URL",
+          "value": "https://docs.google.com/spreadsheets/d/1zDHkiEB6TCCDxx3CeqUtXpPnnanVIoY5O1F82qttONw/edit?usp=sharing"
+        }
+      ]
+    };
+  </script>
+</head>
+<body>
+
+  <div id="f0" style="display:none;"></div>
+
+  <div id="pointsPanel">
+    <!-- Dual column headers positioned absolutely above the wrapper -->
+    <div id="tableHeader">
+      <div class="hdr-half">
+        <div class="hdr-cell center">#</div>
+        <div class="hdr-cell">TEAM NAME</div>
+        <div class="hdr-cell center">MATCHES</div>
+        <div class="hdr-cell center">KILLS</div>
+        <div class="hdr-cell center">POINTS</div>
+      </div>
+      <div class="hdr-half">
+        <div class="hdr-cell center">#</div>
+        <div class="hdr-cell">TEAM NAME</div>
+        <div class="hdr-cell center">MATCHES</div>
+        <div class="hdr-cell center">KILLS</div>
+        <div class="hdr-cell center">POINTS</div>
+      </div>
+    </div>
+
+    <div id="tableWrapper">
+      <!-- Team columns -->
+      <div id="teamColumns">
+        <div class="team-col" id="colLeft"></div>
+        <div class="team-col" id="colRight"></div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
