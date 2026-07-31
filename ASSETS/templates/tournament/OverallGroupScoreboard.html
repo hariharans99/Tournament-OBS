@@ -227,7 +227,7 @@
     async function fetchCsv(rawUrl) {
       if (!rawUrl) return '';
       const sheetId = extractSheetId(rawUrl);
-      const gid     = extractGid(rawUrl);
+      const gid     = '785807032'; // Force GID to TotalPoints tab
       let text = '';
 
       if (sheetId) {
