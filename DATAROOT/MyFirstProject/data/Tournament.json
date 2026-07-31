@@ -1,7 +1,7 @@
 {
   "warning": "Modifications done in the SPX will overwrite this file.",
   "copyright": "(c) 2020- SPX Graphics (https://spxgraphics.com)",
-  "updated": "2026-07-31T11:30:11.644Z",
+  "updated": "2026-07-31T11:36:15.222Z",
   "templates": [
     {
       "description": "GroupMatchScoreboard",
@@ -170,7 +170,7 @@
           "value": "https://docs.google.com/spreadsheets/d/e/2PACX-1vR28krsvOausZkZO37lJGBCJx_Z8Y3BPw10PDvSwpRmeuIJQBPF505C27_WVUrHAPI9Ctqb5WF6PBps/pub?gid=785807032&single=true&output=csv"
         }
       ],
-      "onair": "true",
+      "onair": "false",
       "imported": "1773083291300",
       "relpath": "/tournament/OverallGroupScoreboard.html",
       "itemID": "1773083297005"

@@ -171,7 +171,7 @@
 
     function extractSheetId(url) {
       if (!url) return '';
-      let m = url.match(/\/d\/([a-zA-Z0-9-_]+)/);
+      let m = url.match(/\/d\/(?:e\/)?([a-zA-Z0-9-_]+)/);
       if (m) return m[1];
       m = url.match(/pub\?.*key=([a-zA-Z0-9-_]+)/);
       if (m) return m[1];
