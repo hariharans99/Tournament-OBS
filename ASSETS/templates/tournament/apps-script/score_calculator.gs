@@ -19,8 +19,9 @@ function onEdit(e) {
   var sheet = e.source.getActiveSheet();
   var name  = sheet.getName();
 
-  // Fire on Match sheets (GroupA Match 1, etc.) AND Final sheets (Final 1, etc.)
-  if (!name.includes("Match") && !name.includes("Final")) return;
+  // Fire only on Final1, Final2, or Final3 sheets (ignoring spaces and casing)
+  var cleanName = name.replace(/\s+/g, '').toLowerCase();
+  if (cleanName !== "final1" && cleanName !== "final2" && cleanName !== "final3") return;
 
   var col = e.range.getColumn();
   var row = e.range.getRow();

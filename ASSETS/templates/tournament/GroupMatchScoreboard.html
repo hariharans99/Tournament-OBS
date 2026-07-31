@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Tournament Live Scoreboard</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Orbitron:wght@700;900&display=swap" rel="stylesheet"/>
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: transparent;
+      font-family: 'Rajdhani', sans-serif;
+    }
+
+    /* ── Main Scoreboard Panel (Right Side) ────────────────────────── */
+    #scorePanel {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      transform: translateX(100vw);
+      opacity: 0;
+      background: url('/media/scoreboard_bg.png?v=5') no-repeat;
+      background-size: 24.81vw 90.0vh;
+      background-position: 74.4vw 5.0vh;
+      pointer-events: none;
+      display: block;
+      overflow: hidden;
+    }
+
+    /* ── Inner content container aligned over the panel graphic ── */
+    .panel-content {
+      position: absolute;
+      top: 5.0vh;
+      left: 74.4vw;
+      width: 24.81vw;
+      height: 90.0vh;
+      display: flex;
+      flex-direction: column;
+      overflow: visible;
+    }
+
+    /* ── Header ────────────────────────────────────────────────────── */
+    #panelHeader {
+      background: transparent;
+      border-bottom: none;
+      padding: 0;
+      height: 6.94vh;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    #panelTitle {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.0vw;
+      font-weight: 900;
+      color: transparent; /* Text is baked into background graphic */
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    #liveIndicator {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.7vw;
+      font-weight: 700;
+      color: transparent; /* Text is baked into background graphic */
+      letter-spacing: 1px;
+    }
+
+    #liveDot {
+      position: absolute;
+      top: 6.6vh;
+      left: 6.2vw;
+      width: 0.5vw;
+      height: 0.5vw;
+      background: #ff8800;
+      border-radius: 50%;
+      box-shadow: 0 0 8px #ff8800;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.4; transform: scale(0.8); }
+    }
+
+    /* ── Column Headers (Hidden — Baked in background graphic) ───── */
+    #colHeaders {
+      display: none;
+    }
+
+    /* ── Overall Standings mode header overlay ───────────────── */
+    #standingsHeaders {
+      display: none;
+    }
+
+    /* ── Team Rows Container ───────────────────────────────────────── */
+    #teamList {
+      position: absolute;
+      top: 22.8vh; /* Shifted down below headers */
+      left: 0.5vw; /* Center horizontally by adding a left margin */
+      width: 23.81vw; /* Slightly narrower to avoid stretching to the edges */
+      height: 59.0vh; /* Fits perfectly above bottom separator */
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 0;
+    }
+
+    .team-row {
+      display: grid;
+      grid-template-columns: 8.06vw 5.69vw 5.69vw 4.37vw; /* Scaled down to fit 23.81vw */
+      flex: 1;
+      max-height: 4.69vh; /* Exact height per row */
+      min-height: 1.8vh; /* Allow it to shrink to fit all 25 teams */
+      padding: 0;
+      align-items: center;
+      border-bottom: none;
+      transition: background 0.4s ease;
+      position: relative;
+    }
+
+    .team-row:nth-child(odd) {
+      background: transparent;
+    }
+
+    .team-row:nth-child(even) {
+      background: transparent;
+    }
+
+    .team-row.eliminated {
+      background: rgba(120, 0, 0, 0.22) !important;
+    }
+
+    .team-name-cell {
+      font-size: 0.85vw;
+      font-weight: 700;
+      color: #eeeeee;
+      letter-spacing: 0.4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      padding-left: 1.48vw; /* Adjusted from 1.98vw because teamList is at left: 0.5vw */
+    }
+
+    .team-row.eliminated .team-name-cell {
+      color: #ff5252;
+      text-decoration: line-through;
+      text-decoration-color: #ff1744;
+    }
+
+    .kills-cell, .points-cell, .alive-cell {
+      font-size: 0.85vw;
+      font-weight: 700;
+      text-align: center;
+      font-family: 'Orbitron', sans-serif;
+      border-left: none;
+      padding: 0;
+    }
+
+    .kills-cell {
+      color: #ffc107;
+      text-shadow: 0 0 6px rgba(255, 193, 7, 0.4);
+    }
+
+    .points-cell {
+      color: #ffa040;
+      text-shadow: 0 0 6px rgba(255, 160, 64, 0.4);
+    }
+
+    .alive-cell {
+      color: #ffffff;
+      letter-spacing: 1px;
+      font-size: 0.85vw;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .alive-cell.zero {
+      color: #ff1744;
+      font-size: 0.85vw;
+      letter-spacing: 1px;
+      text-shadow: 0 0 8px rgba(255, 23, 68, 0.6);
+    }
+
+    /* CSS Glowing Dots styles */
+    .alive-dots-wrapper {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0.3vw;
+      width: 100%;
+      height: 100%;
+    }
+
+    .alive-dot {
+      width: 0.45vw;
+      height: 0.45vw;
+      border-radius: 50%;
+      transition: all 0.3s ease;
+      box-sizing: border-box;
+    }
+
+    .alive-dot.active {
+      background: #00ff88;
+      box-shadow: 0 0 6px #00ff88, 0 0 12px rgba(0, 255, 136, 0.6);
+    }
+
+    .alive-dot.inactive {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+    }
+
+    .alive-out {
+      color: #ff1744;
+      font-size: 0.8vw;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-shadow: 0 0 8px rgba(255, 23, 68, 0.6);
+      font-family: 'Orbitron', sans-serif;
+    }
+
+    /* ── Overall Standings specific cells ──────────────────── */
+    .total-cell {
+      font-size: 0.85vw;
+      font-weight: 900;
+      text-align: center;
+      font-family: 'Orbitron', sans-serif;
+      color: #ffd700; /* Gold for total points */
+      text-shadow: 0 0 8px rgba(255, 215, 0, 0.5);
+    }
+
+    .rank-cell {
+      font-size: 0.85vw;
+      font-weight: 700;
+      text-align: center;
+      font-family: 'Orbitron', sans-serif;
+      color: #ffffff;
+      letter-spacing: 0.5px;
+    }
+
+    .rank-cell.rank-top3 {
+      color: #ffd700; /* Gold for top 3 */
+      text-shadow: 0 0 6px rgba(255, 215, 0, 0.5);
+    }
+
+    #panelFooter {
+      position: absolute;
+      top: 85.75vh; /* Align vertically in the footer area of the graphic */
+      left: 0;
+      width: 100%;
+      height: 3.0vh;
+      display: flex;
+      align-items: center;
+      background: transparent;
+      padding: 0;
+      pointer-events: none;
+    }
+
+    #aliveCount {
+      position: absolute;
+      left: 9.8vw;  /* Move next to the baked-in ALIVE text */
+      bottom: 1.1vh; /* Align with text baseline */
+      font-size: 0.95vw;
+      font-weight: 900;
+      color: #ffffff;
+      text-shadow: 0 0 8px rgba(255, 255, 255, 0.6);
+      font-family: 'Orbitron', sans-serif;
+    }
+
+    #elimCount {
+      position: absolute;
+      left: 21.0vw;  /* Move next to the baked-in ELIMINATED text */
+      bottom: 1.1vh; /* Align with text baseline */
+      font-size: 0.95vw;
+      font-weight: 900;
+      color: #ffffff;
+      text-shadow: 0 0 8px rgba(255, 255, 255, 0.6);
+      font-family: 'Orbitron', sans-serif;
+    }
+
+    /* ── Elimination Centre Banner Popup ───────────────────────────── */
+    #elimPopup {
+      position: absolute;
+      bottom: 12vh;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      opacity: 0;
+      z-index: 999;
+      pointer-events: none;
+      width: 560px;
+    }
+
+    #elimPopupBox {
+      width: 100%;
+      height: 315px; /* 16:9 aspect ratio */
+      background-image: url('/media/tournament_bg.jpg');
+      background-size: cover;
+      background-position: center;
+      border: 3px solid #ff1744;
+      box-shadow: 0 0 35px rgba(255, 23, 68, 0.8), inset 0 0 15px rgba(255, 23, 68, 0.3);
+      border-radius: 12px;
+      padding: 18px 40px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #elimPopupBox::before {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%; width: 100%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+      transform: skewX(-25deg);
+      animation: popupShine 2s infinite;
+    }
+
+    @keyframes popupShine {
+      0% { left: -100%; }
+      60%, 100% { left: 200%; }
+    }
+
+    #elimPopupLabel {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.8vw;
+      font-weight: 700;
+      color: #ff8a80;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    #elimPopupTeam {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 2.1vw;
+      font-weight: 900;
+      color: #ffffff;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      text-shadow: 0 0 25px rgba(255, 255, 255, 0.6), 3px 3px 6px rgba(0,0,0,0.9);
+    }
+
+    #elimPopupSub {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.95vw;
+      font-weight: 700;
+      color: #ffcdd2;
+      margin-top: 6px;
+      letter-spacing: 2px;
+    }
+  </style>
+
+  <script>
+    const DEFAULT_CSV_URL = "https://docs.google.com/spreadsheets/d/1Lm61yqAgFFZRIOQxlsK_27s7B77vtOiYk9g_Uq-EZ_8/edit?gid=1030597977#gid=1030597977";
+    const REFRESH_MS      = 2000; // Poll Google Sheet every 2 seconds
+
+    let rawCsvUrl    = '';
+    let prevData     = {};    // Map of teamName -> { kills, alive }
+    let refreshTimer = null;
+    let popupQueue   = [];
+    let popupBusy    = false;
+    let isInitialized = false;
+    let isRunning = false;
+
+    function extractSheetId(url) {
+      if (!url) return '';
+      let match = url.match(/\/d\/(?:e\/)?([a-zA-Z0-9-_]+)/);
+      return match ? match[1] : '';
+    }
+
+    function extractGid(url) {
+      if (!url) return '0';
+      let match = url.match(/gid=([0-9]+)/);
+      return match ? match[1] : '0';
+    }
+
+    function cleanGoogleSheetUrl(url) {
+      if (!url) return DEFAULT_CSV_URL;
+      url = url.trim();
+
+      if (url.startsWith('<iframe') || url.includes('src=')) {
+        let srcMatch = url.match(/src=["']([^"']+)["']/);
+        if (srcMatch && srcMatch[1]) {
+          url = srcMatch[1];
+        }
+      }
+
+      url = url.replace(/&amp;/g, '&');
+
+      if (url.includes('/pubhtml')) {
+        let gidPart = extractGid(url);
+        let basePart = url.split('/pubhtml')[0];
+        return `${basePart}/pub?output=csv&gid=${gidPart}`;
+      }
+
+      return url;
+    }
+
+    function isValidTeamName(name) {
+      if (!name || typeof name !== 'string') return false;
+      let trimmed = name.replace(/^["']|["']$/g, '').trim();
+      if (trimmed.length < 2 || trimmed.length > 40) return false;
+      let lower = trimmed.toLowerCase();
+
+      if (lower === 'teams' || lower === 'team name' || lower === 'teamname' || lower === 'team' || lower === 'status' || lower === 'kills' || lower === 'alive' || lower === 'position') return false;
+
+      if (trimmed.includes('{') || trimmed.includes('}') || trimmed.includes('=') ||
+          trimmed.includes(';') || trimmed.includes(':') || trimmed.includes('#') ||
+          trimmed.includes('<') || trimmed.includes('>') || trimmed.includes('/') ||
+          lower.includes('function') || lower.includes('deleteis') ||
+          lower.includes('pageurl') || lower.includes('null') ||
+          lower.includes('body') || lower.includes('visited') || lower.includes('return')) {
+        return false;
+      }
+
+      return true;
+    }
+
+    function e(id) { return document.getElementById(id); }
+
+    function update(data) {
+      const d = typeof data === 'string' ? JSON.parse(data) : data;
+      for (const k in d) {
+        const el = document.getElementById(k);
+        if (el) el.innerText = d[k] || '';
+      }
+      if (typeof runTemplateUpdate === 'function') runTemplateUpdate();
+    }
+
+    function play() {
+      runTemplateUpdate();
+    }
+    function stop() { hidePanel(); }
+
+    let currentMode = 'Live Match'; // Track scoreboard mode globally
+    let liveCsvUrl = '';
+    let standingsCsvUrl = '';
+
+    async function runTemplateUpdate() {
+      // 1. Read mode from hidden div #f1
+      let modeVal = e('f1') ? e('f1').innerText.trim() : 'Live Match';
+      currentMode = modeVal || 'Live Match';
+
+      // 2. Read live CSV URL
+      liveCsvUrl = (e('f0') ? e('f0').innerText.trim() : '') || DEFAULT_CSV_URL;
+
+      // 3. Smart Standings CSV URL detection:
+      // If f2 is provided, use it. Otherwise, extract sheetId from liveCsvUrl and target the TotalPoints tab (GID: 785807032).
+      let f2Val = e('f2') ? e('f2').innerText.trim() : '';
+      let sheetId = extractSheetId(liveCsvUrl);
+      if (f2Val) {
+        standingsCsvUrl = f2Val;
+      } else if (sheetId) {
+        standingsCsvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=785807032`;
+      } else {
+        standingsCsvUrl = liveCsvUrl;
+      }
+
+      if (isRunning) {
+        await fetchAndRender(false);
+        return;
+      }
+      isRunning = true;
+
+      await fetchAndRender(true);
+      isInitialized = true;
+      showPanel();
+
+      triggerNextPoll();
+    }
+
+    function triggerNextPoll() {
+      if (!isRunning) return;
+      refreshTimer = setTimeout(async () => {
+        if (!isRunning) return;
+        await fetchAndRender(false);
+        triggerNextPoll();
+      }, REFRESH_MS);
+    }
+
+    async function fetchCsv(rawUrl) {
+      if (!rawUrl) return '';
+      let text = '';
+      const targetCsvUrl = cleanGoogleSheetUrl(rawUrl);
+      let sheetId = extractSheetId(rawUrl);
+      let gid = extractGid(rawUrl);
+      
+      // 1. Try DIRECT export URL first
+      if (sheetId) {
+        let exportUrl;
+        if (sheetId.startsWith('2PACX-')) {
+          exportUrl = `https://docs.google.com/spreadsheets/d/e/${sheetId}/pub?output=csv&gid=${gid}`;
+        } else {
+          exportUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${gid}`;
+        }
+        try {
+          const proxyRes = await fetch('/api/fetchUrl?url=' + encodeURIComponent(exportUrl));
+          if (proxyRes.ok) {
+            let tempText = await proxyRes.text();
+            if (tempText && !tempText.startsWith('<!DOCTYPE') && !tempText.startsWith('<html')) {
+              text = tempText;
+            }
+          }
+        } catch (errExport) {}
+      }
+
+      // 2. Fallback to Published URL
+      if (!text) {
+        try {
+          const proxyRes = await fetch('/api/fetchUrl?url=' + encodeURIComponent(targetCsvUrl));
+          if (proxyRes.ok) {
+            text = await proxyRes.text();
+          }
+        } catch (errProxy) {}
+      }
+
+      // 3. Fallback to Direct Fetch
+      if (!text) {
+        try {
+          const directRes = await fetch(targetCsvUrl);
+          if (directRes.ok) {
+            text = await directRes.text();
+          }
+        } catch (errDirect) {}
+      }
+
+      if (!text || text.startsWith('<!DOCTYPE') || text.startsWith('<html')) {
+        return '';
+      }
+      return text;
+    }
+
+    async function fetchAndRender(isFirstLoad) {
+      try {
+        // Fetch live match CSV
+        const liveText = await fetchCsv(liveCsvUrl);
+
+        if (!liveText) {
+          console.warn('Could not fetch Live Match CSV');
+          return;
+        }
+
+        const liveRows = parseCSV(liveText);
+
+        // ─── 1. Parse Live Match Sheet ───
+        let liveHeaderRow = null;
+        for (let row of liveRows) {
+          if (!row || row.length < 2) continue;
+          let hasTeam = row.some(cell => {
+            let c = cell.toLowerCase().trim();
+            return c === 'team' || c === 'teams' || c === 'team name';
+          });
+          if (hasTeam) { liveHeaderRow = row; break; }
+        }
+
+        let liveTeamColIdx = 1, liveAliveColIdx = 2, liveKillsColIdx = 3, livePointsColIdx = 4;
+        let liveElimColIdx = -1;
+        if (liveHeaderRow) {
+          liveHeaderRow.forEach((cell, idx) => {
+            let c = cell.toLowerCase().trim();
+            if (c === 'team' || c === 'teams' || c === 'team name' || c === 'teamname') liveTeamColIdx = idx;
+            else if (c === 'alive' || c === 'status') liveAliveColIdx = idx;
+            else if (c === 'kills' || c === 'kill') liveKillsColIdx = idx;
+            else if (c === 'points' || c === 'pts') livePointsColIdx = idx;
+            else if (c.includes('eliminated') || c.includes('position')) liveElimColIdx = idx;
+          });
+        }
+
+        const liveTeams = [];
+        for (let row of liveRows) {
+          if (!row || row.length <= Math.max(liveTeamColIdx, liveKillsColIdx)) continue;
+          let nameCandidate = (row[liveTeamColIdx] || '').trim();
+          if (!isValidTeamName(nameCandidate)) continue;
+
+          let killsVal = 0;
+          if (row[liveKillsColIdx] !== undefined && row[liveKillsColIdx] !== '') {
+            killsVal = parseInt(row[liveKillsColIdx].trim(), 10);
+            if (isNaN(killsVal)) killsVal = 0;
+          }
+
+          let pointsVal = 0;
+          if (row[livePointsColIdx] !== undefined && row[livePointsColIdx] !== '') {
+            pointsVal = parseInt(row[livePointsColIdx].trim(), 10);
+            if (isNaN(pointsVal)) pointsVal = 0;
+          }
+
+          // Determine alive value dynamically based on Position Eliminated
+          let aliveVal = 4; // Default to fully alive (4 dots)
+          let isEliminated = false;
+
+          if (liveElimColIdx !== -1 && row[liveElimColIdx] !== undefined) {
+            let elimStr = row[liveElimColIdx].trim();
+            if (elimStr !== '') {
+              let elimVal = parseInt(elimStr, 10);
+              if (!isNaN(elimVal) && elimVal > 0) {
+                isEliminated = true;
+              }
+            }
+          }
+
+          if (isEliminated) {
+            aliveVal = 0;
+          } else {
+            // Check the Alive column to see if we have player counts (e.g. 4, 3, 2, 1) or bars
+            if (row[liveAliveColIdx] !== undefined) {
+              let cellStr = row[liveAliveColIdx].trim().toLowerCase();
+              if (cellStr === '0' || cellStr === 'out' || cellStr === 'eliminated' || cellStr === 'dead') {
+                aliveVal = 0;
+              } else {
+                let barCount = (cellStr.match(/[▌█|]/g) || []).length;
+                if (barCount > 0) {
+                  aliveVal = barCount;
+                } else {
+                  let parsed = parseInt(cellStr, 10);
+                  if (!isNaN(parsed)) aliveVal = parsed;
+                }
+              }
+            }
+          }
+
+          liveTeams.push({ name: nameCandidate, alive: aliveVal, kills: killsVal, points: pointsVal });
+        }
+
+        // ─── 2. Fetch Standings via cached API (1 request instead of parsing CSV) ───
+        const standingsMap = {};
+        try {
+          const sheetId = extractSheetId(liveCsvUrl) || extractSheetId(standingsCsvUrl);
+          const stMode = (e('f3') ? e('f3').innerText.trim() : 'Group + Final') || 'Group + Final';
+          const gid = extractGid(standingsCsvUrl) || '0';
+          if (sheetId) {
+            const apiUrl = `/api/tournament/standings?sheetId=${encodeURIComponent(sheetId)}&mode=${encodeURIComponent(stMode)}&gid=${encodeURIComponent(gid)}`;
+            const stRes = await fetch(apiUrl);
+            if (stRes.ok) {
+              const stTeams = await stRes.json();
+              if (Array.isArray(stTeams)) {
+                stTeams.forEach(t => {
+                  standingsMap[t.name.toLowerCase()] = {
+                    points: t.points,
+                    kills: t.kills
+                  };
+                });
+              }
+            }
+          }
+        } catch (stErr) {
+          console.warn('Standings API unavailable, using match points as fallback:', stErr);
+        }
+
+        // ─── 3. Merge Standings Points and Kills into Live Teams ───
+        const mergedTeams = liveTeams.map(t => {
+          const stObj = standingsMap[t.name.toLowerCase()];
+          const overallPts = stObj !== undefined ? stObj.points : t.points;
+          const overallKills = stObj !== undefined ? stObj.kills : t.kills;
+          return {
+            ...t,
+            overallPoints: overallPts,
+            overallKills: overallKills
+          };
+        });
+
+        if (mergedTeams.length === 0) return;
+
+        if (isFirstLoad || e('teamList').children.length === 0) {
+          buildTable(mergedTeams);
+        } else {
+          updateTable(mergedTeams);
+        }
+
+        updateFooter(mergedTeams);
+        mergedTeams.forEach(t => { 
+          const currentKills = (currentMode === 'Overall Standings') ? t.overallKills : t.kills;
+          const currentPoints = (currentMode === 'Overall Standings') ? t.overallPoints : t.points;
+          prevData[t.name] = { kills: currentKills, alive: t.alive, points: currentPoints }; 
+        });
+
+      } catch (err) {
+        console.error('Error fetching/merging CSV:', err);
+      }
+    }
+
+    function sortTeams(teams) {
+      teams.sort((a, b) => {
+        const aPoints = (currentMode === 'Overall Standings') ? a.overallPoints : a.points;
+        const bPoints = (currentMode === 'Overall Standings') ? b.overallPoints : b.points;
+        if (bPoints !== aPoints) {
+          return bPoints - aPoints;
+        }
+        const aKills = (currentMode === 'Overall Standings') ? a.overallKills : a.kills;
+        const bKills = (currentMode === 'Overall Standings') ? b.overallKills : b.kills;
+        return bKills - aKills;
+      });
+      teams.forEach((t, idx) => { t.rank = idx + 1; });
+    }
+
+    function buildTable(teams) {
+      const list = e('teamList');
+      list.innerHTML = '';
+      sortTeams(teams);
+
+      teams.forEach((t, i) => {
+        const row = document.createElement('div');
+        const isOut = (t.alive === 0);
+        row.className = 'team-row' + (isOut ? ' eliminated' : '');
+        row.id = 'row_' + safeid(t.name);
+
+        const displayKills = (currentMode === 'Overall Standings') ? t.overallKills : t.kills;
+        const displayPoints = (currentMode === 'Overall Standings') ? t.overallPoints : t.points;
+
+        row.innerHTML = `
+          <div class="team-name-cell" title="${t.name}">${t.name}</div>
+          <div class="kills-cell" id="kills_${safeid(t.name)}">${displayKills}</div>
+          <div class="alive-cell ${isOut ? 'zero' : ''}" id="alive_${safeid(t.name)}">${getAliveDotsHTML(t.alive)}</div>
+          <div class="total-cell" id="total_${safeid(t.name)}">${displayPoints}</div>
+        `;
+        list.appendChild(row);
+
+        anime({ targets: row, opacity: [0, 1], translateX: ['30px', '0px'], duration: 350, delay: i * 25, easing: 'easeOutCubic' });
+      });
+    }
+
+    function updateTable(teams) {
+      // Sort teams before comparison
+      sortTeams(teams);
+
+      teams.forEach(t => {
+        const id   = safeid(t.name);
+        const row  = e('row_' + id);
+        if (!row) return;
+
+        const displayKills = (currentMode === 'Overall Standings') ? t.overallKills : t.kills;
+        const displayPoints = (currentMode === 'Overall Standings') ? t.overallPoints : t.points;
+        const prev = prevData[t.name] || { kills: displayKills, alive: t.alive, points: displayPoints };
+
+        if (displayKills !== prev.kills) {
+          animateNumber('kills_' + id, prev.kills, displayKills, '#ffcc00');
+          flashRow(row, 'rgba(255, 204, 0, 0.2)');
+        }
+
+        if (displayPoints !== prev.points) {
+          animateNumber('total_' + id, prev.points, displayPoints, '#ffd700');
+          flashRow(row, 'rgba(255, 215, 0, 0.2)');
+        }
+
+        if (t.alive !== prev.alive) {
+          const aliveEl = e('alive_' + id);
+          if (t.alive === 0 && prev.alive > 0) {
+            if (!row.classList.contains('eliminated')) {
+              // Calculate placement: number of teams currently alive + 1
+              let aliveCountAfter = teams.filter(x => x.alive > 0).length;
+              let placement = aliveCountAfter + 1;
+              t.placement = placement;
+
+              markEliminated(row, id, t);
+              popupQueue.push(t);
+              drainPopupQueue();
+            }
+          } else {
+            if (prev.alive === 0 && t.alive > 0) {
+              row.classList.remove('eliminated');
+              row.style.backgroundColor = '';
+              if (aliveEl) aliveEl.className = 'alive-cell';
+            }
+            if (aliveEl) {
+              aliveEl.innerHTML = getAliveDotsHTML(t.alive);
+              anime({
+                targets: aliveEl,
+                scale: [1.3, 1],
+                duration: 400,
+                easing: 'easeOutBack'
+              });
+            }
+            flashRow(row, 'rgba(0, 255, 136, 0.2)');
+          }
+        }
+      });
+
+      // Reorder the DOM nodes smoothly to match the sorted order
+      reorderDOM(teams);
+    }
+
+    function reorderDOM(teams) {
+      const list = e('teamList');
+      teams.forEach(t => {
+        const row = e('row_' + safeid(t.name));
+        if (row) {
+          list.appendChild(row);
+        }
+      });
+    }
+
+    function markEliminated(row, id, t) {
+      const aliveEl = e('alive_' + id);
+      if (aliveEl) {
+        aliveEl.className = 'alive-cell zero';
+        aliveEl.innerHTML = getAliveDotsHTML(0);
+      }
+
+      row.classList.add('eliminated');
+
+      anime({
+        targets: row,
+        backgroundColor: ['rgba(255, 23, 68, 0.5)', 'rgba(180, 0, 0, 0.22)'],
+        duration: 800,
+        easing: 'easeOutCubic'
+      });
+    }
+
+    function animateNumber(elemId, from, to, color) {
+      const el = e(elemId);
+      if (!el) return;
+      const obj = { val: from };
+
+      anime({
+        targets: obj,
+        val: to,
+        duration: 600,
+        easing: 'easeOutCubic',
+        round: 1,
+        update: () => { el.innerText = obj.val; }
+      });
+
+      anime({
+        targets: el,
+        scale: [1.35, 1],
+        color: [color, null],
+        duration: 500,
+        easing: 'easeOutBack'
+      });
+    }
+
+    function flashRow(row, color) {
+      anime({
+        targets: row,
+        background: [color, 'rgba(0,0,0,0)'],
+        duration: 1000,
+        easing: 'easeOutCubic'
+      });
+    }
+
+    function drainPopupQueue() {
+      if (popupBusy || popupQueue.length === 0) return;
+      popupBusy = true;
+      const t = popupQueue.shift();
+      showElimPopup(t, () => {
+        popupBusy = false;
+        drainPopupQueue();
+      });
+    }
+
+    function showElimPopup(team, done) {
+      e('elimPopupTeam').innerText = team.name.toUpperCase();
+      e('elimPopupLabel').innerText = `ELIMINATED AT #${team.placement || '-'}`;
+      e('elimPopupSub').innerText  = `TOTAL KILLS: ${team.kills}`;
+      const pop = e('elimPopup');
+
+      anime.timeline({ easing: 'easeOutElastic(1, 0.7)' })
+        .add({
+          targets: pop,
+          translateX: ['-50%', '-50%'],
+          translateY: ['80px', '0px'],
+          opacity: [0, 1],
+          duration: 750
+        })
+        .add({
+          targets: '#elimPopupBox',
+          scale: [0.85, 1],
+          duration: 500
+        }, '-=600')
+        .add({
+          targets: pop,
+          opacity: [1, 0],
+          translateY: ['0px', '40px'],
+          duration: 600,
+          easing: 'easeInCubic',
+          delay: 4000
+        })
+        .finished.then(() => {
+          pop.style.opacity = '0';
+          done && done();
+        });
+    }
+
+    // Update footer totals
+    function updateFooter(teams) {
+      e('panelFooter').style.display = 'flex';
+      const alive = teams.filter(t => t.alive > 0).length;
+      const elim  = teams.filter(t => t.alive === 0).length;
+      e('aliveCount').innerText = alive;
+      e('elimCount').innerText  = elim;
+    }
+
+    function showPanel() {
+      anime({
+        targets: '#scorePanel',
+        translateX: ['120%', '0%'],
+        opacity: [0, 1],
+        duration: 700,
+        easing: 'easeOutCubic'
+      });
+    }
+
+    function hidePanel() {
+      clearTimeout(refreshTimer);
+      isRunning = false;
+      isInitialized = false;
+      anime({
+        targets: '#scorePanel',
+        translateX: ['0%', '120%'],
+        opacity: [1, 0],
+        duration: 500,
+        easing: 'easeInCubic'
+      });
+    }
+
+    function parseCSV(text) {
+      return text.split(/\r\n|\n/).map(line => line.split(','));
+    }
+
+    function safeid(name) {
+      return name.replace(/[^a-zA-Z0-9]/g, '_');
+    }
+
+    function getAliveDotsHTML(aliveCount) {
+      if (aliveCount === 0) {
+        return `<span class="alive-out">OUT</span>`;
+      }
+      let html = `<div class="alive-dots-wrapper">`;
+      const maxPlayers = 4;
+      for (let i = 0; i < maxPlayers; i++) {
+        if (i < aliveCount) {
+          html += `<span class="alive-dot active"></span>`;
+        } else {
+          html += `<span class="alive-dot inactive"></span>`;
+        }
+      }
+      html += `</div>`;
+      return html;
+    }
+
+    // Auto-initialize when loaded directly in browser/renderer
+    window.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => {
+        if (!isInitialized) runTemplateUpdate();
+      }, 300);
+    });
+
+    window.SPXGCTemplateDefinition = {
+      "description": "GroupMatchScoreboard",
+      "playserver": "OVERLAY",
+      "playchannel": "1",
+      "playlayer": "2",
+      "webplayout": "2",
+      "out": "manual",
+      "DataFields": [
+        {
+          "field": "f0",
+          "ftype": "textfield",
+          "title": "Google Sheet CSV URL / Embed Code",
+          "value": "https://docs.google.com/spreadsheets/d/1Lm61yqAgFFZRIOQxlsK_27s7B77vtOiYk9g_Uq-EZ_8/edit?gid=1030597977#gid=1030597977"
+        },
+        {
+          "field": "f1",
+          "ftype": "select",
+          "title": "Scoreboard Mode",
+          "value": "Live Match",
+          "items": [
+            {"value": "Live Match", "text": "Live Match"},
+            {"value": "Overall Standings", "text": "Overall Standings"}
+          ]
+        },
+        {
+          "field": "f2",
+          "ftype": "textfield",
+          "title": "Overall Standings CSV URL / Embed Code",
+          "value": "https://docs.google.com/spreadsheets/d/1Lm61yqAgFFZRIOQxlsK_27s7B77vtOiYk9g_Uq-EZ_8/edit?gid=785807032#gid=785807032"
+        },
+        {
+          "field": "f3",
+          "ftype": "select",
+          "title": "Standings Mode",
+          "value": "Group + Final",
+          "items": [
+            {"value": "Group Stage", "text": "Group Stage"},
+            {"value": "Final Stage", "text": "Final Stage"},
+            {"value": "Group + Final", "text": "Group + Final"}
+          ]
+        }
+      ]
+    };
+  </script>
+</head>
+<body>
+
+  <div id="f0" style="display:none;"></div>
+  <div id="f1" style="display:none;"></div>
+  <div id="f2" style="display:none;"></div>
+  <div id="f3" style="display:none;"></div>
+
+  <!-- RIGHT SIDE SCOREBOARD PANEL -->
+  <div id="scorePanel">
+    <div class="panel-content">
+      <div id="panelHeader">
+        <div id="panelTitle">🟠 LIVE SCOREBOARD</div>
+        <div id="liveIndicator">
+          <div id="liveDot"></div>
+          LIVE
+        </div>
+      </div>
+
+      <!-- 3 Columns: TEAM | KILLS | ALIVE (hidden — baked in graphic) -->
+      <div id="colHeaders">
+        <div class="col-hdr name">TEAM</div>
+        <div class="col-hdr">KILLS</div>
+        <div class="col-hdr">ALIVE</div>
+      </div>
+
+      <div id="teamList"></div>
+
+      <div id="panelFooter">
+        <span id="aliveCount">—</span>
+        <span id="elimCount">—</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ELIMINATION BANNER POPUP (Centre Screen) -->
+  <div id="elimPopup">
+    <div id="elimPopupBox">
+      <div id="elimPopupLabel">Team Eliminated</div>
+      <div id="elimPopupTeam">TEAM NAME</div>
+      <div id="elimPopupSub">TOTAL KILLS: 0</div>
+    </div>
+  </div>
+
+</body>
+</html>

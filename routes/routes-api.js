@@ -30,34 +30,52 @@ router.get('/files', async (req, res) => {
 
 
 router.get('/fetchUrl', async (req, res) => {
+  let targetUrl = req.query.url;
   try {
-    let targetUrl = req.query.url;
     if (!targetUrl) return res.status(400).send('Missing url parameter');
     let axios = require('axios');
     let response = await axios.get(targetUrl, { timeout: 10000 });
     res.setHeader('Content-Type', 'text/plain');
     res.send(response.data);
   } catch (error) {
-    logger.error('Error in /api/fetchUrl: ' + error);
-    res.status(500).send('Error fetching URL: ' + error.message);
+    logger.error(`Error in /api/fetchUrl (URL: ${targetUrl}): ` + error);
+    res.status(500).send(`Error fetching URL (${targetUrl}): ` + error.message);
   }
 }); // fetchUrl
 
 
-// ─── Tournament Standings API (cached aggregation) ────────────────────────────
-// GET /api/tournament/standings?sheetId=...&mode=Group Stage
-// Returns pre-aggregated JSON: [{ name, points, kills, matches }]
-// Results are cached server-side for 5 seconds to avoid hammering Google Sheets.
+// ═══════════════════════════════════════════════════════════════════════════
+//  Tournament Standings API  —  GET /api/tournament/standings
+//  Query params:
+//    sheetId  – Google Sheet ID
+//    mode     – "Group Stage" | "Final Stage" | "Group + Final"  (default: Group + Final)
+//
+//  TotalPoints Sheet (GID 785807032) column layout (0-indexed):
+//
+//  GROUP STAGE  (cols G-J = indices 6-9):
+//    [6]  Team            – team name
+//    [7]  Total Points    – sum of all group match placement points
+//    [8]  TotalKills      – total kills across all group matches
+//    [9]  Total Matches   – matches played in group stage
+//
+//  FINAL STAGE  (cols Y-AE = indices 24-30, rows 4-19 only = top 16 teams):
+//    [24] Team Name       – team name
+//    [25] Final 0         – placement pts match 1
+//    [26] Final 2         – placement pts match 2
+//    [27] Final 3         – placement pts match 3
+//    [28] Total Points    – sum of all final placement points
+//    [29] Total Matches   – matches played in final stage
+//    [30] Total Kills     – total kills across all final matches
+// ═══════════════════════════════════════════════════════════════════════════
 
 const _standingsCache = {};
 const STANDINGS_CACHE_TTL = 5000; // 5 seconds
 
 const SHEET_GIDS = {
-  totalPoints: '785807032',
-  group: ['1030597977', '1897274994', '528606447', '1956996928'],
-  finals: ['20693017', '645808816', '694167234']
+  totalPoints: '785807032'
 };
 
+// ── CSV parser ─────────────────────────────────────────────────────────────
 function parseCsvText(text) {
   return text.split(/\r\n|\n/).map(line => {
     const result = []; let inQ = false; let cur = '';
@@ -72,159 +90,144 @@ function parseCsvText(text) {
   });
 }
 
+// ── Team name validator ────────────────────────────────────────────────────
 function isValidTeamName(name) {
   if (!name || typeof name !== 'string') return false;
   const t = name.replace(/^["']|["']$/g, '').trim();
   if (t.length < 2 || t.length > 40) return false;
   const l = t.toLowerCase();
-  if (['teams','team name','teamname','team','status','kills','alive','position','points','rank','#','total','total points','s.no','sno'].includes(l)) return false;
-  if (t.includes('{') || t.includes('=') || t.includes('<') || l.includes('function') || l.includes('null') || l.includes('return')) return false;
+  const RESERVED = ['teams','team name','teamname','team','status','kills','alive',
+                    'position','points','rank','#','total','total points','s.no','sno'];
+  if (RESERVED.includes(l)) return false;
+  if (l.includes('matches') || l.includes('table') || l.includes('registered')) return false;
+  if (/[{=<]/.test(t) || /function|null|return/.test(l)) return false;
   return true;
 }
 
+// ── Google Sheet CSV fetcher ───────────────────────────────────────────────
 async function fetchSheetCsv(axios, sheetId, gid) {
-  const url = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${gid}`;
+  let url;
+  if (sheetId.startsWith('2PACX-')) {
+    url = `https://docs.google.com/spreadsheets/d/e/${sheetId}/pub?output=csv&gid=${gid}`;
+  } else {
+    url = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${gid}`;
+  }
   try {
     const resp = await axios.get(url, { timeout: 8000, responseType: 'text' });
     const text = typeof resp.data === 'string' ? resp.data : String(resp.data);
     if (!text || text.startsWith('<!DOCTYPE') || text.startsWith('<html')) return '';
     return text;
-  } catch (e) {
-    return '';
-  }
+  } catch (e) { return ''; }
 }
 
+// ── Parse an integer from a CSV cell (default 0) ──────────────────────────
+function parseNum(cell) {
+  const n = parseInt((cell || '').trim(), 10);
+  return isNaN(n) ? 0 : n;
+}
+
+// ── Main standings route ───────────────────────────────────────────────────
 router.get('/tournament/standings', async (req, res) => {
   try {
     const sheetId = req.query.sheetId || '';
-    const mode = (req.query.mode || 'Group Stage').trim();
-
+    const mode    = (req.query.mode || 'Group Stage').trim();
+    const gid     = req.query.gid || SHEET_GIDS.totalPoints;
     if (!sheetId) return res.status(400).json({ error: 'Missing sheetId' });
 
-    const cacheKey = `${sheetId}:${mode}`;
+    // Serve from cache if fresh
+    const cacheKey = `${sheetId}:${mode}:${gid}`;
     const now = Date.now();
     if (_standingsCache[cacheKey] && (now - _standingsCache[cacheKey].ts) < STANDINGS_CACHE_TTL) {
       return res.json(_standingsCache[cacheKey].data);
     }
 
     const axios = require('axios');
-    let matchGids = [];
-    if (mode === 'Final Stage') {
-      matchGids = SHEET_GIDS.finals;
-    } else if (mode === 'Group + Final') {
-      matchGids = SHEET_GIDS.group.concat(SHEET_GIDS.finals);
-    } else {
-      matchGids = SHEET_GIDS.group;
-    }
+    const rawCsv = await fetchSheetCsv(axios, sheetId, gid);
+    if (!rawCsv) return res.status(500).json({ error: 'Could not fetch standings sheet data' });
 
-    // Fetch TotalPoints + all match sheets in parallel
-    const [pointsText, ...matchTexts] = await Promise.all([
-      fetchSheetCsv(axios, sheetId, SHEET_GIDS.totalPoints),
-      ...matchGids.map(gid => fetchSheetCsv(axios, sheetId, gid))
-    ]);
+    const allRows = parseCsvText(rawCsv);
 
-    // ─── Parse TotalPoints sheet ───
-    const pointsRows = parseCsvText(pointsText);
+    // ── Locate the data header row (contains "S.NO" in col A) ─────────────
+    let hdrFileIdx = -1;
     let ptHeaderRow = null;
-    for (const row of pointsRows) {
+    for (let i = 0; i < allRows.length; i++) {
+      const row = allRows[i];
       if (!row || row.length < 2) continue;
-      if (row.some(c => ['team','teams','team name'].includes(c.toLowerCase().trim()))) { ptHeaderRow = row; break; }
-    }
-
-    let ptTeamIdx = -1;
-    let ptGroupPointsIdx = -1;
-    let ptFinalPointsIdx = -1;
-
-    if (ptHeaderRow) {
-      ptHeaderRow.forEach((c, i) => {
-        const l = c.toLowerCase().trim();
-        if (ptTeamIdx === -1 && ['team','teams','team name','teamname'].includes(l)) ptTeamIdx = i;
-        if (l.includes('total') && l.includes('points') && !l.includes('kill') && !l.includes('match')) {
-          if (ptGroupPointsIdx === -1) {
-            ptGroupPointsIdx = i; // First Total Points (Col H / idx 7)
-          }
-          ptFinalPointsIdx = i; // Overwrites so we get last Total Points (Col P / idx 15)
-        }
-      });
-    }
-    if (ptTeamIdx === -1) ptTeamIdx = 1;
-    if (ptGroupPointsIdx === -1) ptGroupPointsIdx = 7;
-    if (ptFinalPointsIdx === -1) ptFinalPointsIdx = 15;
-
-    const pointsMap = {};
-    for (const row of pointsRows) {
-      if (!row || row.length < 2) continue;
-      const name = (row[ptTeamIdx] || '').trim();
-      if (!isValidTeamName(name)) continue;
-
-      let pts = 0;
-      if (mode === 'Final Stage') {
-        pts = parseInt(row[ptFinalPointsIdx] || '0', 10) || 0;
-      } else if (mode === 'Group + Final') {
-        const groupPts = parseInt(row[ptGroupPointsIdx] || '0', 10) || 0;
-        const finalPts = parseInt(row[ptFinalPointsIdx] || '0', 10) || 0;
-        pts = groupPts + finalPts;
-      } else {
-        pts = parseInt(row[ptGroupPointsIdx] || '0', 10) || 0;
+      const first = (row[0] || '').trim().toLowerCase();
+      if (first === 's.no') { 
+        ptHeaderRow = row; 
+        hdrFileIdx = i; 
+        break; 
       }
-      pointsMap[name.toLowerCase()] = { name, points: pts };
+    }
+    if (hdrFileIdx === -1) {
+      return res.status(500).json({ error: 'Cannot find header row (S.NO) in standings sheet' });
     }
 
-    // ─── Parse match sheets (kills + matches played) ───
-    const killsMap = {};
-    const matchesMap = {};
+    // All actual data rows start after the header
+    const dataRows = allRows.slice(hdrFileIdx + 1);
 
-    matchTexts.forEach(text => {
-      if (!text) return;
-      const mRows = parseCsvText(text);
-      let mTeamIdx = -1, mPosIdx = -1, mKillsIdx = -1;
+    // ── DYNAMIC COLUMN INDEX DETECTION ─────────────────────────────────────
+    let pointsIdx = -1;
+    let teamIdx = -1;
+    let killsIdx = -1;
+    let matchesIdx = -1;
 
-      for (const r of mRows) {
-        if (!r || r.length < 2) continue;
-        if (r.some(c => ['team','teams','team name'].includes(c.toLowerCase().trim()))) {
-          r.forEach((c, i) => {
-            const l = c.toLowerCase().trim();
-            if (['team','teams','team name','teamname'].includes(l)) mTeamIdx = i;
-            else if (['position eliminated','position','placement','eliminated'].includes(l)) mPosIdx = i;
-            else if (['kills','kill'].includes(l)) mKillsIdx = i;
-          });
+    for (let i = 0; i < ptHeaderRow.length; i++) {
+      const cell = ptHeaderRow[i].toLowerCase().trim();
+      if (cell === 'total points' || cell === 'points') {
+        pointsIdx = i;
+      }
+    }
+
+    if (pointsIdx !== -1) {
+      // Find team index by scanning backwards from pointsIdx - 1
+      for (let i = pointsIdx - 1; i >= 0; i--) {
+        const cell = ptHeaderRow[i].toLowerCase().trim();
+        if (cell === 'team' || cell === 'team name' || cell === 'teams') {
+          teamIdx = i;
           break;
         }
       }
+    }
 
-      if (mTeamIdx < 0) mTeamIdx = 1;
-      if (mPosIdx < 0) mPosIdx = 6;
-      if (mKillsIdx < 0) mKillsIdx = 3;
+    // Find kills and matches indices
+    for (let i = 0; i < ptHeaderRow.length; i++) {
+      const cell = ptHeaderRow[i].toLowerCase().trim();
+      const l = cell.toLowerCase();
+      if (l === 'totalkills' || l === 'total kills' || l === 'kills' || l === 'kill') {
+        killsIdx = i;
+      } else if (l === 'total matches' || l === 'matches' || l === 'matches played') {
+        matchesIdx = i;
+      }
+    }
 
-      mRows.forEach(r => {
-        if (!r || r.length <= Math.max(mTeamIdx, mPosIdx)) return;
-        const name = (r[mTeamIdx] || '').trim();
-        if (!isValidTeamName(name)) return;
-        const key = name.toLowerCase();
+    // Fallbacks if not detected
+    if (pointsIdx === -1) pointsIdx = 7;
+    if (teamIdx === -1) teamIdx = 6;
+    if (killsIdx === -1) killsIdx = 8;
+    if (matchesIdx === -1) matchesIdx = 9;
 
-        const posVal = (r[mPosIdx] || '').trim();
-        if (posVal !== '') matchesMap[key] = (matchesMap[key] || 0) + 1;
-
-        if (mKillsIdx < r.length) {
-          const k = parseInt(r[mKillsIdx] || '0', 10) || 0;
-          killsMap[key] = (killsMap[key] || 0) + k;
-        }
+    const standingsList = [];
+    const maxColIdx = Math.max(teamIdx, pointsIdx, killsIdx, matchesIdx);
+    for (const row of dataRows) {
+      if (!row || row.length <= maxColIdx) continue;
+      const name = (row[teamIdx] || '').trim();
+      if (!isValidTeamName(name)) continue;
+      standingsList.push({
+        name,
+        points:  parseNum(row[pointsIdx]),
+        kills:   parseNum(row[killsIdx]),
+        matches: parseNum(row[matchesIdx])
       });
-    });
+    }
 
-    // ─── Merge into final result ───
-    const teams = Object.values(pointsMap).map(t => ({
-      name: t.name,
-      points: t.points,
-      kills: killsMap[t.name.toLowerCase()] || 0,
-      matches: matchesMap[t.name.toLowerCase()] || 0
-    })).filter(t => isValidTeamName(t.name));
+    // ── Sort by points desc, kills desc as tiebreaker ─────────────────────
+    standingsList.sort((a, b) => (b.points - a.points) || (b.kills - a.kills));
+    standingsList.forEach((t, i) => { t.rank = i + 1; });
 
-    teams.sort((a, b) => b.points !== a.points ? b.points - a.points : b.kills - a.kills);
-    teams.forEach((t, i) => { t.rank = i + 1; });
-
-    _standingsCache[cacheKey] = { ts: now, data: teams };
-    res.json(teams);
+    _standingsCache[cacheKey] = { ts: now, data: standingsList };
+    res.json(standingsList);
 
   } catch (err) {
     logger.error('Error in /api/tournament/standings: ' + err);
@@ -232,6 +235,8 @@ router.get('/tournament/standings', async (req, res) => {
   }
 }); // tournament/standings
 // ─────────────────────────────────────────────────────────────────────────────
+
+
 
 
 router.get('/openFileFolder/', async (req, res) => {

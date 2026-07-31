@@ -1,10 +1,10 @@
 {
   "warning": "Modifications done in the SPX will overwrite this file.",
   "copyright": "(c) 2020- SPX Graphics (https://spxgraphics.com)",
-  "updated": "2026-07-30T19:38:24.173Z",
+  "updated": "2026-07-31T09:03:06.351Z",
   "templates": [
     {
-      "description": "Tournament Live Scoreboard (right panel)",
+      "description": "GroupMatchScoreboard",
       "playserver": "OVERLAY",
       "playchannel": "1",
       "playlayer": "2",
@@ -17,7 +17,7 @@
           "field": "f0",
           "ftype": "textfield",
           "title": "Google Sheet CSV URL",
-          "value": "https://docs.google.com/spreadsheets/d/1Lm61yqAgEFZRIOQxlsK_27s7B77vtOiYk9g_Uq-EZ_8/edit?userstoinvite=gninikhil6%40gmail.com&sharingaction=manageaccess&role=writer&gid=694167234#gid=694167234"
+          "value": "https://docs.google.com/spreadsheets/d/1Lm61yqAgEFZRIOQxlsK_27s7B77vtOiYk9g_Uq-EZ_8/edit?pli=1&gid=1030597977#gid=1030597977"
         },
         {
           "field": "f1",
@@ -39,13 +39,13 @@
           "field": "f2",
           "ftype": "textfield",
           "title": "Overall Standings CSV URL / Embed Code",
-          "value": "https://docs.google.com/spreadsheets/d/1Lm61yqAgEFZRIOQxlsK_27s7B77vtOiYk9g_Uq-EZ_8/edit?userstoinvite=gninikhil6%40gmail.com&sharingaction=manageaccess&role=writer&gid=785807032#gid=785807032"
+          "value": "https://docs.google.com/spreadsheets/d/1Lm61yqAgEFZRIOQxlsK_27s7B77vtOiYk9g_Uq-EZ_8/edit?pli=1&gid=1030597977#gid=1030597977"
         },
         {
           "field": "f3",
           "ftype": "select",
           "title": "Standings Mode",
-          "value": "Final Stage",
+          "value": "Group + Final",
           "items": [
             {
               "value": "Group Stage",
@@ -62,17 +62,17 @@
           ]
         }
       ],
-      "onair": "true",
+      "onair": "false",
       "imported": "1773083291300",
-      "relpath": "/tournament/LIVE_SCOREBOARD.html",
+      "relpath": "/tournament/GroupMatchScoreboard.html",
       "itemID": "1773083297001"
     },
     {
-      "description": "Points Table – Top 20 (Rank | Team | Kills | Points)",
+      "description": "FinalsMatchScoreboard",
       "playserver": "OVERLAY",
       "playchannel": "1",
-      "playlayer": "3",
-      "webplayout": "3",
+      "playlayer": "2",
+      "webplayout": "2",
       "out": "manual",
       "dataformat": "json",
       "uicolor": "3",
@@ -80,17 +80,33 @@
         {
           "field": "f0",
           "ftype": "textfield",
-          "title": "Google Sheet CSV URL (TotalPoints tab)",
-          "value": "https://docs.google.com/spreadsheets/d/1Lm61yqAgEFZRIOQxlsK_27s7B77vtOiYk9g_Uq-EZ_8/edit?userstoinvite=gninikhil6%40gmail.com&sharingaction=manageaccess&role=writer&gid=785807032#gid=785807032"
+          "title": "Google Sheet CSV URL",
+          "value": "https://docs.google.com/spreadsheets/d/1R-X7kneYei1PvJDlq8NPTgE5lPfmK7aT3IQvWJJHv7U/edit?gid=233826944#gid=233826944"
         },
         {
           "field": "f1",
-          "ftype": "textfield",
-          "title": "Google Sheet CSV URL (Matchesplayed tab)",
-          "value": "https://docs.google.com/spreadsheets/d/1Lm61yqAgEFZRIOQxlsK_27s7B77vtOiYk9g_Uq-EZ_8/edit?userstoinvite=gninikhil6%40gmail.com&sharingaction=manageaccess&role=writer&gid=785807032#gid=785807032"
+          "ftype": "select",
+          "title": "Scoreboard Mode",
+          "value": "Overall Standings",
+          "items": [
+            {
+              "value": "Live Match",
+              "text": "Live Match"
+            },
+            {
+              "value": "Overall Standings",
+              "text": "Overall Standings"
+            }
+          ]
         },
         {
           "field": "f2",
+          "ftype": "textfield",
+          "title": "Overall Standings CSV URL / Embed Code",
+          "value": "https://docs.google.com/spreadsheets/d/e/2PACX-1vSSeFaOE3EofsUHpiuxUyx2joR-Bbvcet-puHEbyyTM6HjpUlUFG8zoF5wflyoMj0fgOqcML3gUXxsc/pub?output=csv&gid=0"
+        },
+        {
+          "field": "f3",
           "ftype": "select",
           "title": "Standings Mode",
           "value": "Group Stage",
@@ -112,8 +128,8 @@
       ],
       "onair": "false",
       "imported": "1773083291300",
-      "relpath": "/tournament/POINTS_TABLE.html",
-      "itemID": "1773083297002"
+      "relpath": "/tournament/FinalsMatchScoreboard.html",
+      "itemID": "1773083297003"
     }
   ],
   "project": "MyFirstProject",
