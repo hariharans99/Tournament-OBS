@@ -1,0 +1,26 @@
+HOW TO RUN AND SHARE THIS TOURNAMENT OBS CONTROLLER
+==================================================
+
+All custom templates, assets, and configurations are already tracked in Git.
+To share this setup with a friend, follow these steps:
+
+1. SEND YOUR FRIEND THE REPOSITORY LINK:
+   ------------------------------------
+   Your friend can clone it via Git:
+     git clone https://github.com/hariharans99/Tournament-OBS.git
+
+   Or they can download it as a ZIP file by visiting:
+     https://github.com/hariharans99/Tournament-OBS
+     (Click "Code" -> "Download ZIP")
+
+
+2. STEPS FOR YOUR FRIEND TO RUN IT:
+   ---------------------------------
+   a. Install Node.js: Download and install Node.js from https://nodejs.org/ (v16 or newer).
+   b. Open the project folder in terminal / command prompt.
+   c. Install dependencies by running:
+        npm install
+   d. Start the server by running:
+        node server.js
+   e. Open the controller interface in browser:
+        http://localhost:5656
