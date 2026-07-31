@@ -1,7 +1,7 @@
 {
   "warning": "Modifications done in the SPX will overwrite this file.",
   "copyright": "(c) 2020- SPX Graphics (https://spxgraphics.com)",
-  "updated": "2026-07-31T12:00:33.342Z",
+  "updated": "2026-07-31T12:25:40.796Z",
   "templates": [
     {
       "description": "GroupMatchScoreboard",
@@ -17,7 +17,7 @@
           "field": "f0",
           "ftype": "textfield",
           "title": "Google Sheet CSV URL",
-          "value": "https://docs.google.com/spreadsheets/d/1Lm61yqAgEFZRIOQxlsK_27s7B77vtOiYk9g_Uq-EZ_8/edit?pli=1&gid=1897274994#gid=1897274994"
+          "value": "https://docs.google.com/spreadsheets/d/1Lm61yqAgEFZRIOQxlsK_27s7B77vtOiYk9g_Uq-EZ_8/edit?pli=1&gid=1956996928#gid=1956996928"
         },
         {
           "field": "f1",
@@ -62,10 +62,32 @@
           ]
         }
       ],
-      "onair": "true",
+      "onair": "false",
       "imported": "1773083291300",
       "relpath": "/tournament/GroupMatchScoreboard.html",
       "itemID": "1773083297001"
+    },
+    {
+      "description": "OverallGroupScoreboard",
+      "playserver": "OVERLAY",
+      "playchannel": "1",
+      "playlayer": "3",
+      "webplayout": "3",
+      "out": "manual",
+      "dataformat": "json",
+      "uicolor": "1",
+      "DataFields": [
+        {
+          "field": "f0",
+          "ftype": "textfield",
+          "title": "Google Sheet CSV URL",
+          "value": "https://docs.google.com/spreadsheets/d/1Lm61yqAgEFZRIOQxlsK_27s7B77vtOiYk9g_Uq-EZ_8/edit?pli=1&gid=785807032#gid=785807032"
+        }
+      ],
+      "onair": "true",
+      "imported": "1773083291300",
+      "relpath": "/tournament/OverallGroupScoreboard.html",
+      "itemID": "1773083297005"
     },
     {
       "description": "FinalsMatchScoreboard",
@@ -81,7 +103,7 @@
           "field": "f0",
           "ftype": "textfield",
           "title": "Google Sheet CSV URL",
-          "value": "https://docs.google.com/spreadsheets/d/1R-X7kneYei1PvJDlq8NPTgE5lPfmK7aT3IQvWJJHv7U/edit?gid=233826944#gid=233826944"
+          "value": "https://docs.google.com/spreadsheets/d/1R-X7kneYei1PvJDlq8NPTgE5lPfmK7aT3IQvWJJHv7U/edit?gid=806911614#gid=806911614"
         },
         {
           "field": "f1",
@@ -126,7 +148,7 @@
           ]
         }
       ],
-      "onair": "false",
+      "onair": "true",
       "imported": "1773083291300",
       "relpath": "/tournament/FinalsMatchScoreboard.html",
       "itemID": "1773083297003"
@@ -145,35 +167,13 @@
           "field": "f0",
           "ftype": "textfield",
           "title": "Google Sheet CSV URL",
-          "value": "https://docs.google.com/spreadsheets/d/1zDHkiEB6TCCDxx3CeqUtXpPnnanVIoY5O1F82qttONw/edit?usp=sharing"
+          "value": "https://docs.google.com/spreadsheets/d/1R-X7kneYei1PvJDlq8NPTgE5lPfmK7aT3IQvWJJHv7U/edit?gid=0#gid=0"
         }
       ],
       "onair": "false",
       "imported": "1773083291300",
       "relpath": "/tournament/OverallScoreboard.html",
       "itemID": "1773083297004"
-    },
-    {
-      "description": "OverallGroupScoreboard",
-      "playserver": "OVERLAY",
-      "playchannel": "1",
-      "playlayer": "3",
-      "webplayout": "3",
-      "out": "manual",
-      "dataformat": "json",
-      "uicolor": "1",
-      "DataFields": [
-        {
-          "field": "f0",
-          "ftype": "textfield",
-          "title": "Google Sheet CSV URL",
-          "value": "https://docs.google.com/spreadsheets/d/e/2PACX-1vR28krsvOausZkZO37lJGBCJx_Z8Y3BPw10PDvSwpRmeuIJQBPF505C27_WVUrHAPI9Ctqb5WF6PBps/pub?gid=785807032&single=true&output=csv"
-        }
-      ],
-      "onair": "false",
-      "imported": "1773083291300",
-      "relpath": "/tournament/OverallGroupScoreboard.html",
-      "itemID": "1773083297005"
     }
   ],
   "project": "MyFirstProject",
