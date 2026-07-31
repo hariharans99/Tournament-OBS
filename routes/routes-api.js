@@ -173,40 +173,41 @@ router.get('/tournament/standings', async (req, res) => {
     let killsIdx = -1;
     let matchesIdx = -1;
 
-    for (let i = 0; i < ptHeaderRow.length; i++) {
-      const cell = ptHeaderRow[i].toLowerCase().trim();
-      if (cell === 'total points' || cell === 'points') {
-        if (pointsIdx === -1) pointsIdx = i;
-      }
-    }
-
-    if (pointsIdx !== -1) {
-      // Find team index by scanning backwards from pointsIdx - 1
-      for (let i = pointsIdx - 1; i >= 0; i--) {
-        const cell = ptHeaderRow[i].toLowerCase().trim();
-        if (cell === 'team' || cell === 'team name' || cell === 'teams') {
-          teamIdx = i;
-          break;
+    if (gid === '785807032') {
+      // Group Stage points table - map columns L to O directly (indices 11 to 14)
+      teamIdx = 11;
+      pointsIdx = 12;
+      killsIdx = 13;
+      matchesIdx = 14;
+    } else {
+      if (pointsIdx !== -1) {
+        // Find team index by scanning backwards from pointsIdx - 1
+        for (let i = pointsIdx - 1; i >= 0; i--) {
+          const cell = ptHeaderRow[i].toLowerCase().trim();
+          if (cell === 'team' || cell === 'team name' || cell === 'teams') {
+            teamIdx = i;
+            break;
+          }
         }
       }
-    }
 
-    // Find kills and matches indices
-    for (let i = 0; i < ptHeaderRow.length; i++) {
-      const cell = ptHeaderRow[i].toLowerCase().trim();
-      const l = cell.toLowerCase();
-      if (l === 'totalkills' || l === 'total kills' || l === 'kills' || l === 'kill') {
-        if (killsIdx === -1) killsIdx = i;
-      } else if (l === 'total matches' || l === 'matches' || l === 'matches played') {
-        if (matchesIdx === -1) matchesIdx = i;
+      // Find kills and matches indices
+      for (let i = 0; i < ptHeaderRow.length; i++) {
+        const cell = ptHeaderRow[i].toLowerCase().trim();
+        const l = cell.toLowerCase();
+        if (l === 'totalkills' || l === 'total kills' || l === 'kills' || l === 'kill') {
+          if (killsIdx === -1) killsIdx = i;
+        } else if (l === 'total matches' || l === 'matches' || l === 'matches played') {
+          if (matchesIdx === -1) matchesIdx = i;
+        }
       }
-    }
 
-    // Fallbacks if not detected
-    if (pointsIdx === -1) pointsIdx = 7;
-    if (teamIdx === -1) teamIdx = 6;
-    if (killsIdx === -1) killsIdx = 8;
-    if (matchesIdx === -1) matchesIdx = 9;
+      // Fallbacks if not detected
+      if (pointsIdx === -1) pointsIdx = 7;
+      if (teamIdx === -1) teamIdx = 6;
+      if (killsIdx === -1) killsIdx = 8;
+      if (matchesIdx === -1) matchesIdx = 9;
+    }
 
     const standingsList = [];
     const maxColIdx = Math.max(teamIdx, pointsIdx, killsIdx, matchesIdx);
