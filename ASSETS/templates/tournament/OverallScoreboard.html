@@ -428,6 +428,24 @@
       anime({ targets: '#pointsPanel', opacity: [1, 0], duration: 400, easing: 'easeInCubic' });
     }
 
+    // SPX Playout API Hooks
+    function update(data) {
+      const d = typeof data === 'string' ? JSON.parse(data) : data;
+      for (const k in d) {
+        const el = document.getElementById(k);
+        if (el) el.innerText = d[k] || '';
+      }
+      runTemplateUpdate();
+    }
+
+    function play() {
+      runTemplateUpdate();
+    }
+
+    function stop() {
+      hidePanel();
+    }
+
     window.addEventListener('DOMContentLoaded', () => {
       setTimeout(() => { if (!isInitialized) runTemplateUpdate(); }, 300);
     });
