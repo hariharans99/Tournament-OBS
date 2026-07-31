@@ -1,7 +1,7 @@
 {
   "warning": "Modifications done in the SPX will overwrite this file.",
   "copyright": "(c) 2020- SPX Graphics (https://spxgraphics.com)",
-  "updated": "2026-07-31T12:00:33.342Z",
+  "updated": "2026-07-31T12:08:33.098Z",
   "templates": [
     {
       "description": "GroupMatchScoreboard",
@@ -17,7 +17,7 @@
           "field": "f0",
           "ftype": "textfield",
           "title": "Google Sheet CSV URL",
-          "value": "https://docs.google.com/spreadsheets/d/1Lm61yqAgEFZRIOQxlsK_27s7B77vtOiYk9g_Uq-EZ_8/edit?pli=1&gid=1897274994#gid=1897274994"
+          "value": "https://docs.google.com/spreadsheets/d/1Lm61yqAgEFZRIOQxlsK_27s7B77vtOiYk9g_Uq-EZ_8/edit?pli=1&gid=528606447#gid=528606447"
         },
         {
           "field": "f1",

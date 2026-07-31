@@ -232,8 +232,20 @@
       font-family: 'Orbitron', sans-serif;
     }
 
+    .total-points-mask {
+      position: absolute;
+      top: 17.5vh;
+      right: 0.4vw;
+      width: 5.0vw;
+      height: 5.0vh;
+      background-color: #0c0e14; /* Match the dark background to cover the baked-in header */
+      z-index: 10;
+      pointer-events: none;
+    }
+
     /* ── Overall Standings specific cells ──────────────────── */
     .total-cell {
+      display: none !important;
       font-size: 0.85vw;
       font-weight: 900;
       text-align: center;
@@ -1018,6 +1030,8 @@
   <!-- RIGHT SIDE SCOREBOARD PANEL -->
   <div id="scorePanel">
     <div class="panel-content">
+      <!-- Mask to cover the baked-in "TOTAL POINTS" header -->
+      <div class="total-points-mask"></div>
       <div id="panelHeader">
         <div id="panelTitle">🟠 LIVE SCOREBOARD</div>
         <div id="liveIndicator">
